@@ -580,8 +580,8 @@ async function doLogout() {
 // ══════════════════════════════════════
 function initMain() {
   db.ref('.info/connected').on('value', snap => setStatus(snap.val() === true));
-  menu = getMenu();
-  renderCats(); renderProducts(); renderCart(); updateBadge();
+  renderCart(); updateBadge();
+  listenMenu();
   listenOrders();
 }
 
@@ -612,9 +612,8 @@ const DEF = [
   {id:'p1',name:'Pincho tortilla',price:2.50,cat:'Tapas',emoji:'🥚',img:''},
   {id:'p2',name:'Croquetas (6ud)',price:5.50,cat:'Tapas',emoji:'🟡',img:''},
 ];
-const getMenu = () => JSON.parse(localStorage.getItem('cafe_menu')||'null') || DEF;
-if (!localStorage.getItem('cafe_menu')) localStorage.setItem('cafe_menu', JSON.stringify(DEF));
-let menu = getMenu();
+// Menu is loaded from Firebase - start with DEF until Firebase responds
+let menu = DEF;
 let cart = [], selCat = 'Todos';
 let mobOrderOpen = false, noteTargetIdx = null;
 let deskView = 'menu', mobView = 'menu';
@@ -959,8 +958,31 @@ document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('clic
 function setLoading(on){document.getElementById('loading-bar').classList.toggle('active',on);}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
-// Sync menu
-setInterval(()=>{const nm=getMenu();if(JSON.stringify(nm)!==JSON.stringify(menu)){menu=nm;renderCats();renderProducts();}},5000);
+// Listen for menu changes in Firebase in real time
+function listenMenu() {
+  db.ref('menu').on('value', snap => {
+    if (snap.exists()) {
+      const m = [];
+      snap.forEach(c => m.push(c.val()));
+      if (m.length) {
+        menu = m;
+        renderCats();
+        renderProducts();
+      }
+    } else {
+      // No menu in Firebase yet — save defaults
+      saveMenuToFB(DEF);
+    }
+  });
+}
+
+async function saveMenuToFB(m) {
+  if (!db || !currentUser) return;
+  // Store as object keyed by id for easy updates
+  const obj = {};
+  m.forEach(p => { obj[p.id] = p; });
+  await db.ref('menu').set(obj);
+}
 </script>
 </body>
 </html>

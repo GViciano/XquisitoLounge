@@ -230,7 +230,7 @@ const FIREBASE_CONFIG = {
 };
 // Crea este usuario en Firebase Authentication y pon su contrasena aqui:
 const CLIENTE_EMAIL    = "cliente@xquisitolounge.com";
-const CLIENTE_PASSWORD = "prueba1234";
+const CLIENTE_PASSWORD = "CAMBIA_ESTA_PASSWORD";
 
 // ── Parámetros de URL ──
 const params    = new URLSearchParams(window.location.search);
@@ -263,18 +263,16 @@ auth.signInWithEmailAndPassword(CLIENTE_EMAIL, CLIENTE_PASSWORD)
   });
 
 function onReady() {
-  // Cargar menú desde Firebase
-  db.ref('menu').once('value').then(snap => {
+  // Mostrar UI inmediatamente con menú por defecto, luego actualizar desde Firebase
+  menu = getDefaultMenu();
+  initUI();
+  // Escuchar menú en tiempo real (se actualiza al instante si el editor cambia algo)
+  db.ref('menu').on('value', snap => {
     if (snap.exists()) {
       const m = [];
       snap.forEach(c => m.push(c.val()));
-      if (m.length) menu = m;
+      if (m.length) { menu = m; renderCats(); renderProducts(); }
     }
-    if (!menu.length) menu = getDefaultMenu();
-    initUI();
-  }).catch(() => {
-    menu = getDefaultMenu();
-    initUI();
   });
 }
 
