@@ -110,9 +110,10 @@ h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400}
 .product-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .15s;position:relative;-webkit-user-select:none;user-select:none}
 .product-card:hover{border-color:var(--border2);box-shadow:var(--sh)}
 .product-card:active{transform:scale(.96);border-color:var(--accent)}
-.product-img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:var(--surface2)}
+.product-img{width:100%;aspect-ratio:4/3;object-fit:contain;display:block;background:var(--surface2)}
 .product-placeholder{width:100%;aspect-ratio:4/3;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:2rem}
 .product-info{padding:9px 10px 11px}
+.product-desc-tpv{font-size:.7rem;color:var(--text2);line-height:1.35;margin-bottom:4px;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
 .product-name{font-size:.82rem;font-weight:500;line-height:1.3;margin-bottom:3px}
 .product-price{font-size:.95rem;font-weight:600;color:var(--accent)}
 .qty-badge{position:absolute;top:7px;left:7px;background:var(--text);color:#fff;font-size:.7rem;font-weight:600;padding:2px 8px;border-radius:50px}
@@ -203,6 +204,8 @@ h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400}
 .btn-ocb.paid{background:var(--accent);color:#fff}
 .btn-ocb:active{transform:scale(.95)}
 .btn-ocb.delete{background:var(--err-bg);color:var(--err);padding:8px 12px}
+.btn-ocb.print{background:var(--surface2);color:var(--text2);padding:8px 12px}
+.btn-ocb.print:hover{background:var(--border2);color:var(--text)}
 .orders-empty-big{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;color:var(--text3);text-align:center;padding:3rem}
 .orders-empty-big .icon{font-size:4rem;margin-bottom:1rem;opacity:.25}
 .orders-empty-big p{font-size:1rem}
@@ -372,6 +375,19 @@ textarea.form-input{resize:none;min-height:76px;margin-bottom:0}
 /* TOAST */
 .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(50px);background:var(--text);color:#fff;padding:9px 18px;border-radius:50px;font-size:.8rem;font-weight:500;z-index:700;transition:all .28s cubic-bezier(.32,.72,0,1);white-space:nowrap;opacity:0}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+
+/* ── PRINT TICKET ── */
+@media print {
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  body > *:not(#ticket-print-frame) { display: none !important; }
+  #ticket-print-frame {
+    display: block !important;
+    position: fixed; inset: 0; background: #fff; z-index: 9999;
+    padding: 0; margin: 0;
+  }
+}
+/* Ticket print frame (hidden on screen) */
+#ticket-print-frame { display: none; }
 </style>
 </head>
 <body>
@@ -864,7 +880,11 @@ function renderProducts() {
     const ph  = `<div class="product-placeholder"${p.img?' style="display:none"':''}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
     return `<div class="product-card" onclick="addToCart('${p.id}')">
       ${img}${ph}
-      <div class="product-info"><div class="product-name">${p.name}</div><div class="product-price">${fmt(p.price)}</div></div>
+      <div class="product-info">
+        <div class="product-name">${p.name}</div>
+        ${p.desc?`<div class="product-desc-tpv">${p.desc}</div>`:''}
+        <div class="product-price">${fmt(p.price)}</div>
+      </div>
       ${qty>0?`<div class="qty-badge">${qty}</div>`:''}
     </div>`;
   }).join('');
@@ -1061,7 +1081,7 @@ function buildOrdersBig() {
           <span class="status-badge ${o.status==='pending'?'s-pending':'s-ready'}" style="font-size:.78rem;padding:5px 14px;flex-shrink:0">${o.status==='pending'?'⏳ Preparando':'✅ Listo'}</span>
         </div>
       </div>
-      ${mesa ? `<div class="ocb-mesa">📍 Mesa ${mesa}</div>` : '<div class="ocb-mesa-empty">Sin mesa asignada</div>'}
+      ${mesa ? `<div class="ocb-mesa">Mesa ${mesa}</div>` : '<div class="ocb-mesa-empty">Sin mesa asignada</div>'}
       ${comment ? `<div class="ocb-comment">💬 ${comment}</div>` : ''}
       <div class="ocb-items">
         ${o.items.map(it=>`
@@ -1075,6 +1095,7 @@ function buildOrdersBig() {
         <div class="ocb-actions">
           ${o.status==='pending'?`<button class="btn-ocb ready" onclick="setStatus('${o.fbKey}','ready')">✓ Listo</button>`:''}
           ${o.status==='ready'?`<button class="btn-ocb paid" onclick="setStatus('${o.fbKey}','paid')">💳 Cobrado</button>`:''}
+          <button class="btn-ocb print" onclick="printOrder('${o.fbKey}')" title="Imprimir ticket">🖨</button>
           <button class="btn-ocb delete" onclick="deleteOrder('${o.fbKey}')" title="Eliminar pedido">🗑</button>
         </div>
       </div>
@@ -1102,27 +1123,45 @@ function buildOrdersMob() {
   listEl.innerHTML = active.map(o=>{
     const mesa    = o.mesa || getMesa(o.note) || '';
     const comment = o.comment || getExtraNotes(o.note) || '';
+    const cardId = 'mc-'+o.fbKey.slice(-6);
     return `<div class="order-card" style="margin-bottom:10px">
-      <div class="oc-head">
+      <div class="oc-head" onclick="toggleMobCard('${cardId}')" style="cursor:pointer">
         <div>
           <span class="oc-num">${o.id}</span>
           <span class="oc-time" style="margin-left:6px">${o.time}</span>
           ${o.source==='cliente'?'<span style="font-size:.65rem;background:var(--accent-l);color:var(--accent-d);padding:1px 7px;border-radius:50px;margin-left:5px;font-weight:600">📱</span>':''}
         </div>
-        <span class="status-badge ${SC[o.status]}">${SL[o.status]}</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="status-badge ${SC[o.status]}">${SL[o.status]}</span>
+          <span class="mob-card-chev" id="chev-${cardId}" style="color:var(--text3);font-size:.75rem;transition:transform .2s">▼</span>
+        </div>
       </div>
       ${mesa
-        ? `<div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--accent);margin:.4rem 0 .1rem;line-height:1">📍 Mesa ${mesa}</div>`
+        ? `<div style="font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--accent);margin:.4rem 0 .1rem;line-height:1">Mesa ${mesa}</div>`
         : `<div style="font-size:.75rem;color:var(--text3);margin:.3rem 0">Sin mesa</div>`
       }
-      ${comment ? `<div style="font-size:.88rem;font-weight:500;color:var(--text);background:var(--warn-bg);padding:6px 10px;border-radius:var(--rsm);margin:.4rem 0">💬 ${comment}</div>` : ''}
-      <div class="oc-items" style="margin-top:.5rem">${o.items.map(it=>`${it.qty}× ${it.name}`).join(', ')}</div>
-      <div class="oc-foot" style="margin-top:.75rem">
-        <span class="oc-total">${fmt(o.total)}</span>
-        <div class="oc-actions">
-          ${o.status==='pending'?`<button class="btn-sm ok" onclick="setStatus('${o.fbKey}','ready')">Listo ✓</button>`:''}
-          ${o.status==='ready'?`<button class="btn-sm ok" onclick="setStatus('${o.fbKey}','paid')">Cobrado ✓</button>`:''}
-          <button class="btn-sm" onclick="deleteOrder('${o.fbKey}')" style="color:var(--err)">🗑</button>
+      <!-- collapsed: 2-line summary -->
+      <div id="summary-${cardId}" style="font-size:.78rem;color:var(--text2);margin:.3rem 0;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2">
+        ${o.items.map(it=>`${it.qty}× ${it.name}`).join(' · ')}
+      </div>
+      <!-- expanded: full product list + actions -->
+      <div id="${cardId}" style="display:none">
+        ${comment ? `<div style="font-size:.88rem;font-weight:500;color:var(--text);background:var(--warn-bg);padding:6px 10px;border-radius:var(--rsm);margin:.4rem 0">💬 ${comment}</div>` : ''}
+        <div style="margin:.5rem 0">
+          ${o.items.map(it=>`
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:.88rem">
+              <span><strong>${it.qty}×</strong> ${it.name}</span>
+              <span style="color:var(--text2)">${fmt(it.price*it.qty)}</span>
+            </div>`).join('')}
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.75rem">
+          <span style="font-family:'DM Serif Display',serif;font-size:1.3rem">${fmt(o.total)}</span>
+          <div class="oc-actions">
+            ${o.status==='pending'?`<button class="btn-sm ok" onclick="setStatus('${o.fbKey}','ready')">Listo ✓</button>`:''}
+            ${o.status==='ready'?`<button class="btn-sm ok" onclick="setStatus('${o.fbKey}','paid')">Cobrado ✓</button>`:''}
+            <button class="btn-sm" onclick="printOrder('${o.fbKey}')" title="Imprimir">🖨</button>
+            <button class="btn-sm" onclick="deleteOrder('${o.fbKey}')" style="color:var(--err)">🗑</button>
+          </div>
         </div>
       </div>
     </div>`;
@@ -1168,7 +1207,7 @@ function buildCal(calId,lblId,sumId,listId) {
   const fd=new Date(calYear,calMonth,1).getDay(), offset=(fd+6)%7;
   const dim=new Date(calYear,calMonth+1,0).getDate(), td=todayStr();
   const pre=`${calYear}-${String(calMonth+1).padStart(2,'0')}-`;
-  const dwo=new Set(orders.filter(o=>o.date&&o.date.startsWith(pre)).map(o=>parseInt(o.date.split('-')[2])));
+  const dwo=new Set(orders.filter(o=>o.date&&o.date.startsWith(pre)&&o.status==='paid').map(o=>parseInt(o.date.split('-')[2])));
   el.innerHTML=`
     <div class="cal-nav">
       <button class="cal-arrow" onclick="calMove(-1,'${calId}','${lblId}','${sumId}','${listId}')">‹</button>
@@ -1190,7 +1229,7 @@ function calMove(dir,a,b,c,d){calMonth+=dir;if(calMonth<0){calMonth=11;calYear--
 function pickDate(ds,a,b,c,d){selDate=ds;const[y,m]=ds.split('-');calYear=+y;calMonth=+m-1;buildCal(a,b,c,d);}
 
 function renderHistList(ds,lblId,sumId,listId) {
-  const dayOrders = orders.filter(o=>o.date===ds);
+  const dayOrders = orders.filter(o=>o.date===ds && o.status==='paid');
   const [y,m,d]  = ds.split('-'), dt = new Date(+y,+m-1,+d);
   const isToday  = ds===todayStr();
 
@@ -1201,7 +1240,7 @@ function renderHistList(ds,lblId,sumId,listId) {
   // Summary
   const tot = dayOrders.reduce((a,o)=>a+o.total,0);
   const sumEl = document.getElementById(sumId);
-  if(sumEl) sumEl.textContent = dayOrders.length ? `${dayOrders.length} pedido${dayOrders.length>1?'s':''} · ${fmt(tot)}` : '';
+  if(sumEl) sumEl.textContent = dayOrders.length ? `${dayOrders.length} cobrado${dayOrders.length>1?'s':''} · ${fmt(tot)}` : '';
 
   // Orders grid
   const listEl  = document.getElementById(listId);
@@ -1232,7 +1271,7 @@ function renderHistList(ds,lblId,sumId,listId) {
         <span class="status-badge ${SC[o.status]}" style="font-size:.75rem;padding:5px 12px;flex-shrink:0">${SL[o.status]}</span>
       </div>
       ${mesa
-        ? `<div class="ocb-mesa">📍 Mesa ${mesa}</div>`
+        ? `<div class="ocb-mesa">Mesa ${mesa}</div>`
         : `<div class="ocb-mesa-empty">Sin mesa</div>`
       }
       ${comment ? `<div class="ocb-comment">💬 ${comment}</div>` : ''}
@@ -1245,7 +1284,10 @@ function renderHistList(ds,lblId,sumId,listId) {
       </div>
       <div class="ocb-footer">
         <span class="ocb-total">${fmt(o.total)}</span>
-        <button class="btn-ocb delete" onclick="deleteOrder('${o.fbKey}')" title="Eliminar">🗑</button>
+        <div class="ocb-actions">
+          <button class="btn-ocb print" onclick="printOrder('${o.fbKey}')" title="Imprimir ticket">🖨</button>
+          <button class="btn-ocb delete" onclick="deleteOrder('${o.fbKey}')" title="Eliminar">🗑</button>
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -1312,6 +1354,76 @@ function mobSwitch(view) {
 }
 
 // ══════════════════════════════════════
+//  PRINT TICKET
+// ══════════════════════════════════════
+function printOrder(fbKey) {
+  const o = orders.find(x => x.fbKey === fbKey);
+  if (!o) return;
+  const mesa    = o.mesa || getMesa(o.note) || '';
+  const comment = o.comment || getExtraNotes(o.note) || '';
+  const SL = {pending:'En preparación', ready:'Listo', paid:'Cobrado'};
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('es', {day:'2-digit',month:'2-digit',year:'numeric'});
+
+  const itemsHTML = o.items.map(it => `
+    <tr>
+      <td class="qty">${it.qty}×</td>
+      <td class="name">${it.name}</td>
+      <td class="price">${fmt(it.price * it.qty)}</td>
+    </tr>`).join('');
+
+  // Subtotal rows per item for readability
+  const ticketHTML = `
+    <div class="ticket">
+      <div class="ticket-header">
+        <div class="ticket-logo">☕ XQUISITO LOUNGE</div>
+        <div class="ticket-sub">${dateStr} · ${o.time}</div>
+      </div>
+      <hr class="ticket-divider">
+      ${mesa ? `<div class="ticket-mesa">📍 ${mesa === 'Barra' ? 'BARRA' : 'MESA ' + mesa}</div>` : ''}
+      <div class="ticket-meta">
+        Pedido: <strong>${o.id}</strong> · ${o.source === 'cliente' ? '📱 Cliente' : '🧑‍🍳 TPV'}
+        · ${SL[o.status] || o.status}
+      </div>
+      ${comment ? `<div class="ticket-comment">💬 ${comment}</div>` : ''}
+      <hr class="ticket-divider">
+      <table class="ticket-items">
+        <tbody>${itemsHTML}</tbody>
+      </table>
+      <hr class="ticket-divider">
+      <div class="ticket-total-row">
+        <span class="ticket-total-lbl">TOTAL</span>
+        <span class="ticket-total-val">${fmt(o.total)}</span>
+      </div>
+      <hr class="ticket-divider">
+      <div class="ticket-footer">¡Gracias por su visita!</div>
+      <div class="ticket-order-id">${o.id}</div>
+    </div>`;
+
+  // Inject into print frame and print
+  const frame = document.getElementById('ticket-print-frame');
+  frame.innerHTML = ticketHTML;
+  setTimeout(() => {
+    window.print();
+    setTimeout(() => { frame.innerHTML = ''; }, 1000);
+  }, 100);
+}
+
+// ══════════════════════════════════════
+//  MOBILE CARD TOGGLE
+// ══════════════════════════════════════
+function toggleMobCard(id) {
+  const el = document.getElementById(id);
+  const chev = document.getElementById('chev-'+id);
+  const sumEl = document.getElementById('summary-'+id);
+  if (!el) return;
+  const open = el.style.display === 'none';
+  el.style.display = open ? 'block' : 'none';
+  if(chev) chev.style.transform = open ? 'rotate(180deg)' : '';
+  if(sumEl) sumEl.style.display = open ? 'none' : '';
+}
+
+// ══════════════════════════════════════
 //  NOTE MODAL & UTILS
 // ══════════════════════════════════════
 function openNoteModal(idx){noteTargetIdx=idx;document.getElementById('note-modal-input').value=cart[idx].note||'';openModal('modal-note');}
@@ -1344,5 +1456,37 @@ async function saveMenuToFB(m) {
   await db.ref('menu').set(obj);
 }
 </script>
+<!-- TICKET PRINT FRAME -->
+<div id="ticket-print-frame"></div>
+
+<style>
+/* Ticket layout inside frame */
+.ticket {
+  width: 72mm;
+  margin: 0 auto;
+  font-family: 'Courier New', monospace;
+  font-size: 11pt;
+  color: #000;
+  padding: 4mm 2mm;
+}
+.ticket-header { text-align: center; margin-bottom: 4mm; }
+.ticket-logo { font-size: 16pt; font-weight: bold; letter-spacing: .5mm; margin-bottom: 1mm; }
+.ticket-sub { font-size: 9pt; color: #333; margin-bottom: 3mm; }
+.ticket-divider { border: none; border-top: 1px dashed #000; margin: 3mm 0; }
+.ticket-mesa { font-size: 20pt; font-weight: bold; text-align: center; margin: 3mm 0; letter-spacing: 1mm; }
+.ticket-meta { font-size: 9pt; color: #444; margin-bottom: 3mm; }
+.ticket-comment { font-size: 9pt; font-weight: bold; border: 1px solid #000; padding: 1.5mm 2mm; margin-bottom: 3mm; }
+.ticket-items { width: 100%; border-collapse: collapse; margin-bottom: 3mm; }
+.ticket-items td { padding: 1mm 0; font-size: 10.5pt; vertical-align: top; }
+.ticket-items .qty { width: 8mm; text-align: left; font-weight: bold; }
+.ticket-items .name { }
+.ticket-items .price { text-align: right; white-space: nowrap; }
+.ticket-total-row { display: flex; justify-content: space-between; align-items: baseline; margin: 2mm 0; }
+.ticket-total-lbl { font-size: 11pt; font-weight: bold; }
+.ticket-total-val { font-size: 16pt; font-weight: bold; }
+.ticket-footer { text-align: center; font-size: 8.5pt; color: #555; margin-top: 4mm; }
+.ticket-order-id { text-align: center; font-size: 10pt; margin-top: 2mm; color: #333; }
+</style>
+
 </body>
 </html>

@@ -73,8 +73,8 @@ h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400}
 .products-table td{padding:10px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
 .products-table tr:last-child td{border-bottom:none}
 .products-table tr:hover td{background:var(--surface2)}
-.product-thumb{width:44px;height:44px;border-radius:var(--rsm);object-fit:cover;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.2rem;cursor:pointer;overflow:hidden;flex-shrink:0}
-.product-thumb img{width:100%;height:100%;object-fit:cover}
+.product-thumb{width:56px;height:56px;border-radius:var(--rsm);object-fit:cover;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.2rem;cursor:pointer;overflow:hidden;flex-shrink:0}
+.product-thumb img{width:100%;height:100%;object-fit:contain;background:#fff}
 .editable{cursor:text;padding:4px 6px;border-radius:var(--rsm);border:1px solid transparent;transition:all .12s;min-width:80px;display:inline-block}
 .editable:hover{border-color:var(--border2);background:var(--surface2)}
 .editable:focus{border-color:var(--accent);background:var(--surface);outline:none}
@@ -114,7 +114,7 @@ textarea.form-input{resize:none;min-height:70px}
 /* IMAGE upload */
 .img-upload-area{border:2px dashed var(--border2);border-radius:var(--r);padding:1.25rem;text-align:center;cursor:pointer;transition:all .15s}
 .img-upload-area:hover{border-color:var(--accent);background:var(--accent-l)}
-.img-preview{width:100%;max-height:180px;object-fit:cover;border-radius:var(--rsm);margin-bottom:8px;display:none}
+.img-preview{width:100%;max-height:220px;object-fit:contain;background:var(--surface2);border-radius:var(--rsm);margin-bottom:8px;display:none;border:1px solid var(--border)}
 .img-upload-label{font-size:.83rem;color:var(--text2)}
 
 /* NAV LINKS */
