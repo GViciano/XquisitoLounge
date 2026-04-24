@@ -270,7 +270,7 @@ function onReady() {
   db.ref('menu').on('value', snap => {
     if (snap.exists()) {
       const m = [];
-      snap.forEach(c => m.push(c.val()));
+      snap.forEach(c => { const v=c.val(); if(v&&v.id) m.push(v); });
       if (m.length) { menu = m; renderCats(); renderProducts(); }
     }
   });

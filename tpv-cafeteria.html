@@ -963,17 +963,13 @@ function listenMenu() {
   db.ref('menu').on('value', snap => {
     if (snap.exists()) {
       const m = [];
-      snap.forEach(c => m.push(c.val()));
-      if (m.length) {
-        menu = m;
-        renderCats();
-        renderProducts();
-      }
+      snap.forEach(c => { const v=c.val(); if(v&&v.id) m.push(v); });
+      if (m.length) { menu = m; renderCats(); renderProducts(); }
     } else {
       // No menu in Firebase yet — save defaults
       saveMenuToFB(DEF);
     }
-  });
+  }, err => console.error('listenMenu error:', err));
 }
 
 async function saveMenuToFB(m) {

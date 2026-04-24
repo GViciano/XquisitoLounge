@@ -322,8 +322,16 @@ function setStatus(online) {
 function listenMenu() {
   db.ref('menu').on('value', snap => {
     menu = [];
-    if (snap.exists()) snap.forEach(c => menu.push(c.val()));
+    if (snap.exists()) {
+      snap.forEach(c => {
+        const val = c.val();
+        if (val && val.id) menu.push(val);
+      });
+    }
     renderStats(); renderTable(); updateCatList();
+  }, err => {
+    showToast('⚠ Error leyendo menú: ' + err.message);
+    console.error('listenMenu error:', err);
   });
 }
 
@@ -345,8 +353,13 @@ async function deleteProductFromDB(id) {
 }
 
 async function updateProductInDB(p) {
-  if (!db) return;
-  await db.ref('menu/' + p.id).set(p);
+  if (!db) { showToast('⚠ Sin conexión con Firebase'); return; }
+  try {
+    await db.ref('menu/' + p.id).set(p);
+  } catch(e) {
+    showToast('⚠ Error: ' + e.message);
+    console.error('updateProductInDB error:', e);
+  }
 }
 
 // ══ STATS ══
@@ -442,14 +455,24 @@ async function saveProduct() {
   const emoji = document.getElementById('prod-emoji').value.trim();
   const imgUrl= document.getElementById('prod-img').value.trim();
   if (!name||isNaN(price)||!cat) { showToast('⚠ Completa nombre, precio y categoría'); return; }
+  if (!db) { showToast('⚠ Sin conexión con Firebase'); return; }
   const img = imgBase64||imgUrl||'';
+  const isNew = !editingId;
   const product = editingId
     ? { ...menu.find(x=>x.id===editingId), name, price, cat, emoji, img }
-    : { id:'p'+Date.now(), name, price, cat, emoji, img };
+    : { id:'prod_'+Date.now()+'_'+Math.random().toString(36).substr(2,5), name, price, cat, emoji, img };
   setLoading(true);
-  await updateProductInDB(product);
+  try {
+    await db.ref('menu/' + product.id).set(product);
+    closeModal('modal-product');
+    showToast(isNew ? '✓ Producto creado' : '✓ Producto actualizado');
+    // Reset image
+    imgBase64 = '';
+  } catch(e) {
+    showToast('⚠ Error al guardar: ' + e.message);
+    console.error(e);
+  }
   setLoading(false);
-  closeModal('modal-product');
 }
 
 // ══ DELETE ══
