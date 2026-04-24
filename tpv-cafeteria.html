@@ -175,6 +175,39 @@ h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400}
 .mob-btn-confirm{width:100%;padding:.875rem;border:none;border-radius:var(--r);background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:600;cursor:pointer}
 .mob-btn-confirm:disabled{opacity:.35;pointer-events:none}
 
+/* ── ORDERS GRID (desktop, centro) ── */
+.orders-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;padding:1.25rem;align-content:start}
+@media(min-width:1200px){.orders-grid{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}}
+.order-card-big{background:var(--surface);border:2px solid var(--border);border-radius:14px;padding:1.25rem 1.25rem 1rem;transition:all .2s;position:relative}
+.order-card-big.s-pending-card{border-color:var(--warn);background:#FFFBF5}
+.order-card-big.s-ready-card{border-color:var(--ok);background:#F6FBF0}
+.ocb-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.875rem;gap:8px}
+.ocb-num{font-family:'DM Serif Display',serif;font-size:1.6rem;line-height:1;color:var(--text)}
+.ocb-time{font-size:.72rem;color:var(--text2);margin-top:3px}
+.ocb-source{font-size:.65rem;background:var(--accent-l);color:var(--accent-d);padding:2px 8px;border-radius:50px;font-weight:600;display:inline-block;margin-top:3px}
+.ocb-note{font-size:.8rem;color:var(--text2);margin-top:3px;font-style:italic}
+.ocb-mesa{font-family:'DM Serif Display',serif;font-size:1.9rem;color:var(--accent);line-height:1;margin:.5rem 0 .25rem;font-weight:400}
+.ocb-items{margin-bottom:1rem}
+.ocb-item-row{display:flex;align-items:baseline;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:.88rem}
+.ocb-item-row:last-child{border-bottom:none}
+.ocb-item-name{font-weight:500}
+.ocb-item-qty{color:var(--text2);font-size:.8rem;flex-shrink:0;margin-left:8px}
+.ocb-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border)}
+.ocb-total{font-family:'DM Serif Display',serif;font-size:1.4rem}
+.ocb-actions{display:flex;gap:7px}
+.btn-ocb{padding:8px 18px;border-radius:var(--r);border:none;font-family:'DM Sans',sans-serif;font-size:.83rem;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-ocb.ready{background:var(--ok-bg);color:var(--ok)}
+.btn-ocb.paid{background:var(--accent);color:#fff}
+.btn-ocb:active{transform:scale(.95)}
+.orders-empty-big{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;color:var(--text3);text-align:center;padding:3rem}
+.orders-empty-big .icon{font-size:4rem;margin-bottom:1rem;opacity:.25}
+.orders-empty-big p{font-size:1rem}
+.orders-header-bar{padding:1rem 1.25rem .75rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.orders-header-title{font-family:'DM Serif Display',serif;font-size:1.3rem}
+.orders-live-badge{display:flex;align-items:center;gap:5px;font-size:.75rem;color:var(--ok);font-weight:500}
+.orders-live-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);animation:pulse-dot 1.5s ease-in-out infinite}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.3}}
+
 /* ── ORDERS / HISTORY CARDS ── */
 .view-scroll{flex:1;overflow-y:auto;padding:1rem}
 .order-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:10px}
@@ -395,9 +428,20 @@ textarea.form-input{resize:none;min-height:76px;margin-bottom:0}
       </div>
     </div>
 
-    <!-- VIEW: PEDIDOS (mobile) -->
-    <div id="view-orders" style="display:none;flex:1;overflow-y:auto;padding:1rem">
-      <div id="mob-orders-list"></div>
+    <!-- VIEW: PEDIDOS (mobile + desktop centro) -->
+    <div id="view-orders" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+      <div class="orders-header-bar">
+        <span class="orders-header-title">Pedidos activos</span>
+        <div class="orders-live-badge"><div class="orders-live-dot"></div> En tiempo real</div>
+      </div>
+      <div style="flex:1;overflow-y:auto">
+        <div class="orders-grid" id="orders-grid-center"></div>
+        <div class="orders-empty-big" id="orders-empty-center" style="display:none">
+          <div class="icon">📋</div><p>No hay pedidos activos</p>
+        </div>
+      </div>
+      <!-- mobile simple list fallback (hidden on desktop) -->
+      <div id="mob-orders-list" style="display:none"></div>
     </div>
 
     <!-- VIEW: HISTORIAL (mobile) -->
@@ -433,12 +477,8 @@ textarea.form-input{resize:none;min-height:76px;margin-bottom:0}
         <button class="btn-clear" onclick="clearCart()">Vaciar pedido</button>
       </div>
     </div>
-    <div id="desk-orders-panel" style="display:none;flex-direction:column;flex:1;overflow:hidden">
-      <div style="padding:1.25rem 1.25rem .875rem;border-bottom:1px solid var(--border);flex-shrink:0">
-        <h2 class="order-title">Pedidos activos</h2>
-      </div>
-      <div class="view-scroll" id="desk-orders-list"></div>
-    </div>
+    <!-- orders now in center column on desktop -->
+    <div id="desk-orders-panel" style="display:none"></div>
     <div id="desk-history-panel" style="display:none;flex-direction:column;flex:1;overflow:hidden">
       <div class="hist-top" id="desk-cal-wrap"></div>
       <div class="hist-day-bar">
@@ -583,6 +623,7 @@ function initMain() {
   renderCart(); updateBadge();
   listenMenu();
   listenOrders();
+  listenCatOrder();
 }
 
 function setStatus(online) {
@@ -699,9 +740,24 @@ function dismissNotif() {
 // ══════════════════════════════════════
 //  CATEGORIES & PRODUCTS
 // ══════════════════════════════════════
+let catOrder = [];
+
+function listenCatOrder() {
+  db.ref('catOrder').on('value', snap => {
+    catOrder = snap.exists() ? snap.val() : [];
+    renderCats();
+  });
+}
+
+function getOrderedCats() {
+  const inMenu = [...new Set(menu.map(p=>p.cat))];
+  const ordered = catOrder.filter(c => inMenu.includes(c));
+  const extras  = inMenu.filter(c => !ordered.includes(c));
+  return ['Todos', ...ordered, ...extras];
+}
+
 function renderCats() {
-  const cats = ['Todos',...new Set(menu.map(p=>p.cat))];
-  document.getElementById('cats-bar').innerHTML = cats.map(c=>
+  document.getElementById('cats-bar').innerHTML = getOrderedCats().map(c=>
     `<span class="cat-pill${c===selCat?' active':''}" onclick="selectCat('${c}')">${c}</span>`
   ).join('');
 }
@@ -709,10 +765,10 @@ function selectCat(c) { selCat=c; renderCats(); renderProducts(); }
 
 function renderProducts() {
   const list = selCat==='Todos' ? menu : menu.filter(p=>p.cat===selCat);
-  document.getElementById('products-grid').innerHTML = list.map(p=>{
+  document.getElementById('products-grid').innerHTML = list.filter(p=>p.available!==false).map(p=>{
     const qty = (cart.find(i=>i.id===p.id)||{qty:0}).qty;
     const img = p.img ? `<img class="product-img" src="${p.img}" onerror="this.style.display='none';this.nextSibling.style.display='flex'">` : '';
-    const ph  = `<div class="product-placeholder"${p.img?' style="display:none"':''}>${p.emoji||'🍽'}</div>`;
+    const ph  = `<div class="product-placeholder"${p.img?' style="display:none"':''}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
     return `<div class="product-card" onclick="addToCart('${p.id}')">
       ${img}${ph}
       <div class="product-info"><div class="product-name">${p.name}</div><div class="product-price">${fmt(p.price)}</div></div>
@@ -793,8 +849,14 @@ function mobToggleOrder() {
 async function confirmOrder() {
   if(!cart.length||!currentUser) return;
   const noteEl = isDesk() ? document.getElementById('desk-note') : document.getElementById('mob-note');
+  // Get next correlative number from Firebase
+  let orderNum = 1;
+  try {
+    const snap = await db.ref('orderCounter').transaction(n => (n||0) + 1);
+    if (snap.committed) orderNum = snap.snapshot.val();
+  } catch(e) { console.warn('Counter error:', e); }
   const order = {
-    id: '#'+String(Date.now()).slice(-5),
+    id: '#' + String(orderNum).padStart(3,'0'),
     items: [...cart],
     note: noteEl.value.trim(),
     total: cart.reduce((a,i)=>a+i.price*i.qty,0),
@@ -820,24 +882,87 @@ async function confirmOrder() {
 }
 
 // ══════════════════════════════════════
-//  ORDERS LIST
+//  ORDERS — BIG GRID (desktop center)
 // ══════════════════════════════════════
-function buildOrdersList(containerId) {
+// Extract mesa number and extra notes from order note string
+function getMesa(note) {
+  if (!note) return '';
+  const m = note.match(/Mesa[:\s]+([^\s—–-]+)/i);
+  return m ? m[1] : '';
+}
+function getExtraNotes(note) {
+  if (!note) return '';
+  // Remove "Mesa: X" part, return rest
+  return note.replace(/Mesa[:\s]+[^\s—–-]+\s*[—–-]?\s*/i,'').trim();
+}
+
+function buildOrdersBig() {
   const active = orders.filter(o=>o.status!=='paid');
-  const el = document.getElementById(containerId);
-  if(!active.length){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><p>No hay pedidos activos</p></div>';return;}
-  const SL={pending:'En preparación',ready:'Listo',paid:'Cobrado'};
-  const SC={pending:'s-pending',ready:'s-ready',paid:'s-paid'};
-  el.innerHTML = active.map(o=>`
-    <div class="order-card">
+  const grid = document.getElementById('orders-grid-center');
+  const empty = document.getElementById('orders-empty-center');
+  if (!grid) return;
+  if (!active.length) {
+    grid.innerHTML=''; grid.style.display='none';
+    if(empty) empty.style.display='flex';
+    return;
+  }
+  grid.style.display='grid'; if(empty) empty.style.display='none';
+  grid.innerHTML = active.map(o=>`
+    <div class="order-card-big ${o.status==='pending'?'s-pending-card':'s-ready-card'}">
+      <div class="ocb-head">
+        <div>
+          <div class="ocb-num">${o.id}</div>
+          <div class="ocb-time">🕐 ${o.time} · ${o.source==='cliente'?'📱 Cliente':'🧑‍🍳 TPV'}</div>
+        </div>
+        <span class="status-badge ${o.status==='pending'?'s-pending':'s-ready'}">${o.status==='pending'?'⏳ Preparando':'✅ Listo'}</span>
+      </div>
+      ${getMesa(o.note)?`<div class="ocb-mesa">Mesa ${getMesa(o.note)}</div>`:''}
+      ${getExtraNotes(o.note)?`<div class="ocb-note">📝 ${getExtraNotes(o.note)}</div>`:''}
+      <div class="ocb-items">
+        ${o.items.map(it=>`
+          <div class="ocb-item-row">
+            <span class="ocb-item-name">${it.name}</span>
+            <span class="ocb-item-qty">× ${it.qty}</span>
+          </div>`).join('')}
+      </div>
+      <div class="ocb-footer">
+        <span class="ocb-total">${fmt(o.total)}</span>
+        <div class="ocb-actions">
+          ${o.status==='pending'?`<button class="btn-ocb ready" onclick="setStatus('${o.fbKey}','ready')">✓ Listo</button>`:''}
+          ${o.status==='ready'?`<button class="btn-ocb paid" onclick="setStatus('${o.fbKey}','paid')">💳 Cobrado</button>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ── Mobile orders list (simple) ──
+function buildOrdersMob() {
+  const active = orders.filter(o=>o.status!=='paid');
+  // On mobile show simple list inside view-orders
+  const listEl = document.getElementById('mob-orders-list');
+  const gridEl = document.getElementById('orders-grid-center');
+  const emptyEl = document.getElementById('orders-empty-center');
+  // Hide grid, show list
+  if(gridEl) gridEl.style.display='none';
+  if(listEl) listEl.style.display='block';
+  if(emptyEl) emptyEl.style.display='none';
+  if(!active.length){
+    listEl.innerHTML='<div class="empty"><div class="empty-icon">📋</div><p>No hay pedidos activos</p></div>';
+    return;
+  }
+  const SL={pending:'En preparación',ready:'Listo'};
+  const SC={pending:'s-pending',ready:'s-ready'};
+  listEl.innerHTML = active.map(o=>`
+    <div class="order-card" style="margin-bottom:10px">
       <div class="oc-head">
         <div>
           <span class="oc-num">${o.id}</span><span class="oc-time">${o.time}</span>
           ${o.source==='cliente'?'<span style="font-size:.65rem;background:var(--accent-l);color:var(--accent-d);padding:1px 7px;border-radius:50px;margin-left:5px;font-weight:600">📱 Cliente</span>':''}
-          ${o.note?`<div class="oc-note">📝 ${o.note}</div>`:''}
         </div>
         <span class="status-badge ${SC[o.status]}">${SL[o.status]}</span>
       </div>
+      ${getMesa(o.note)?`<div style="font-family:'DM Serif Display',serif;font-size:1.4rem;color:var(--accent);margin:.25rem 0 .1rem;line-height:1">Mesa ${getMesa(o.note)}</div>`:''}
+      ${getExtraNotes(o.note)?`<div class="oc-note">📝 ${getExtraNotes(o.note)}</div>`:''}
       <div class="oc-items">${o.items.map(it=>`${it.qty}× ${it.name}`).join(', ')}</div>
       <div class="oc-foot">
         <span class="oc-total">${fmt(o.total)}</span>
@@ -853,7 +978,7 @@ function setStatus(fbKey,status) {
   db.ref('orders/'+fbKey).update({status});
   const o=orders.find(x=>x.fbKey===fbKey); if(o) o.status=status;
   updateBadge();
-  if(isDesk()) buildOrdersList('desk-orders-list'); else buildOrdersList('mob-orders-list');
+  if(isDesk()) buildOrdersBig(); else buildOrdersMob();
   showToast(status==='ready'?'✓ Pedido listo':'✓ Cobrado');
 }
 
@@ -928,13 +1053,18 @@ function rebuildHist(){
 // ══════════════════════════════════════
 function deskSwitch(view) {
   deskView=view;
-  document.getElementById('view-menu').style.display=view==='menu'?'flex':'none';
-  document.getElementById('view-history').style.display='none';
-  document.getElementById('desk-order-panel').style.display=view==='menu'?'flex':'none';
-  document.getElementById('desk-orders-panel').style.display=view==='orders'?'flex':'none';
-  document.getElementById('desk-history-panel').style.display=view==='history'?'flex':'none';
+  // Center column views
+  document.getElementById('view-menu').style.display    = view==='menu'?'flex':'none';
+  document.getElementById('view-orders').style.display  = view==='orders'?'flex':'none';
+  document.getElementById('view-history').style.display = view==='history'?'flex':'none';
+  // Right column panels (hidden when orders is active — orders go full center)
+  document.getElementById('desk-order-panel').style.display   = view==='menu'?'flex':'none';
+  document.getElementById('desk-orders-panel').style.display  = 'none';
+  document.getElementById('desk-history-panel').style.display = view==='history'?'flex':'none';
+  // Hide right column entirely on orders view so center gets full width
+  document.querySelector('.col-right').style.display = view==='orders' ? 'none' : 'flex';
   ['menu','orders','history'].forEach(v=>document.getElementById('dnav-'+v).classList.toggle('active',v===view));
-  if(view==='orders') buildOrdersList('desk-orders-list');
+  if(view==='orders') buildOrdersBig();
   if(view==='history') initHist('desk-cal-wrap','desk-day-lbl','desk-day-sum','desk-hist-list');
 }
 function mobSwitch(view) {
@@ -943,7 +1073,7 @@ function mobSwitch(view) {
   document.getElementById('view-orders').style.display=view==='orders'?'flex':'none';
   document.getElementById('view-history').style.display=view==='history'?'flex':'none';
   ['menu','orders','history'].forEach(v=>document.getElementById('tab-'+v).classList.toggle('active',v===view));
-  if(view==='orders') buildOrdersList('mob-orders-list');
+  if(view==='orders') buildOrdersMob();
   if(view==='history') initHist('mob-cal-wrap','mob-day-lbl','mob-day-sum','mob-hist-list');
 }
 

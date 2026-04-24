@@ -127,6 +127,16 @@ textarea.form-input{resize:none;min-height:70px}
 /* TOAST */
 .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--text);color:#fff;padding:10px 18px;border-radius:50px;font-size:.83rem;font-weight:500;z-index:300;transition:all .3s;opacity:0;transform:translateY(10px)}
 .toast.show{opacity:1;transform:translateY(0)}
+
+/* CATEGORY ORDER */
+.cat-order-list{display:flex;flex-direction:column;gap:6px;margin-top:.5rem}
+.cat-order-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--rsm);cursor:grab;transition:all .15s;-webkit-user-select:none;user-select:none}
+.cat-order-item:active{cursor:grabbing}
+.cat-order-item.dragging{opacity:.4;background:var(--accent-l);border-color:var(--accent)}
+.cat-order-item.drag-over{border-color:var(--accent);background:var(--accent-l);transform:scale(1.01)}
+.cat-drag-handle{color:var(--text3);font-size:1rem;flex-shrink:0;cursor:grab}
+.cat-order-name{flex:1;font-size:.88rem;font-weight:500}
+.cat-order-count{font-size:.72rem;color:var(--text2);background:var(--surface2);padding:2px 8px;border-radius:50px}
 </style>
 </head>
 <body>
@@ -193,6 +203,13 @@ textarea.form-input{resize:none;min-height:70px}
     </div>
   </div>
 
+  <!-- CATEGORY ORDER -->
+  <div class="card" id="cat-order-card">
+    <div class="card-title">🗂 Orden de categorías <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3);font-size:.75rem;margin-left:4px">— arrastra para reordenar</span></div>
+    <div class="cat-order-list" id="cat-order-list"></div>
+    <button class="btn btn-accent" style="margin-top:1rem" onclick="saveCatOrder()">💾 Guardar orden</button>
+  </div>
+
   <!-- PRODUCTS -->
   <div class="card">
     <div class="card-title" style="justify-content:space-between">
@@ -201,7 +218,7 @@ textarea.form-input{resize:none;min-height:70px}
     </div>
     <div style="overflow-x:auto">
       <table class="products-table">
-        <thead><tr><th>Foto</th><th>Nombre</th><th>Categoría</th><th>Precio</th><th></th></tr></thead>
+        <thead><tr><th>Foto</th><th>Nombre / Descripción</th><th>Categoría</th><th>Precio</th><th></th></tr></thead>
         <tbody id="products-tbody"></tbody>
       </table>
     </div>
@@ -232,7 +249,16 @@ textarea.form-input{resize:none;min-height:70px}
       <div><label class="form-label">Nombre *</label><input class="form-input" id="prod-name" placeholder="Café con leche"></div>
       <div><label class="form-label">Precio (€) *</label><input class="form-input" id="prod-price" type="number" step="0.10" min="0" placeholder="1.50"></div>
       <div><label class="form-label">Categoría *</label><input class="form-input" id="prod-cat" placeholder="Cafés" list="cat-list"><datalist id="cat-list"></datalist></div>
-      <div><label class="form-label">Emoji</label><input class="form-input" id="prod-emoji" placeholder="☕" maxlength="4"></div>
+      <div><label class="form-label">Disponible</label>
+        <select class="form-input" id="prod-available">
+          <option value="1">✅ Disponible</option>
+          <option value="0">❌ No disponible</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:1rem">
+      <label class="form-label">Descripción <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3)">(se muestra en la carta del cliente)</span></label>
+      <textarea class="form-input" id="prod-desc" placeholder="Ej: Espresso con leche vaporizada. Suave y cremoso." style="min-height:72px;resize:none;margin-bottom:0"></textarea>
     </div>
     <div style="display:flex;gap:8px;margin-top:1.25rem">
       <button class="btn-full accent" onclick="saveProduct()">Guardar en Firebase</button>
@@ -289,6 +315,7 @@ auth.onAuthStateChanged(user => {
     document.getElementById('app').style.display = 'block';
     db.ref('.info/connected').on('value', s => setStatus(s.val() === true));
     listenMenu();
+    listenCatOrder();
   } else {
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('app').style.display = 'none';
@@ -378,11 +405,15 @@ function renderTable() {
   const filtered = menu.filter(p=>!q||p.name.toLowerCase().includes(q)||p.cat.toLowerCase().includes(q));
   document.getElementById('empty-table').style.display = filtered.length===0?'block':'none';
   document.getElementById('products-tbody').innerHTML = filtered.map(p=>`
-    <tr>
+    <tr style="${p.available===false?'opacity:.5':''}">
       <td><div class="product-thumb" onclick="openEditProduct('${p.id}')">
-        ${p.img?`<img src="${p.img}" onerror="this.style.display='none'">`:`<span>${p.emoji||'🍽'}</span>`}
+        ${p.img?`<img src="${p.img}" onerror="this.style.display='none'">`:'<span style="font-size:.9rem;color:var(--text3)">📷</span>'}
       </div></td>
-      <td><span class="editable" contenteditable="true" onblur="inlineUpdate('${p.id}','name',this.textContent.trim())">${p.name}</span></td>
+      <td>
+        <span class="editable" contenteditable="true" onblur="inlineUpdate('${p.id}','name',this.textContent.trim())">${p.name}</span>
+        ${p.desc?`<div style="font-size:.72rem;color:var(--text2);margin-top:2px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.desc}</div>`:''}
+        ${p.available===false?'<span style="font-size:.65rem;background:var(--err-bg);color:var(--err);padding:1px 7px;border-radius:50px;margin-top:2px;display:inline-block">No disponible</span>':''}
+      </td>
       <td><span class="cat-badge editable" contenteditable="true" onblur="inlineUpdate('${p.id}','cat',this.textContent.trim())">${p.cat}</span></td>
       <td class="price-cell"><span class="editable" contenteditable="true" onblur="inlineUpdatePrice('${p.id}',this.textContent.trim())">${p.price.toFixed(2)}</span> €</td>
       <td><div class="actions-cell">
@@ -410,7 +441,8 @@ async function inlineUpdatePrice(id, val) {
 function openAddProduct() {
   editingId = null; imgBase64 = '';
   document.getElementById('modal-product-title').textContent = 'Nuevo producto';
-  ['prod-name','prod-price','prod-cat','prod-emoji','prod-img'].forEach(id=>document.getElementById(id).value='');
+  ['prod-name','prod-price','prod-cat','prod-img','prod-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('prod-available').value='1';
   document.getElementById('img-preview').style.display = 'none';
   document.getElementById('img-upload-hint').style.display = 'block';
   openModal('modal-product');
@@ -423,8 +455,9 @@ function openEditProduct(id) {
   document.getElementById('prod-name').value = p.name;
   document.getElementById('prod-price').value = p.price;
   document.getElementById('prod-cat').value = p.cat;
-  document.getElementById('prod-emoji').value = p.emoji||'';
   document.getElementById('prod-img').value = p.img||'';
+  document.getElementById('prod-desc').value = p.desc||'';
+  document.getElementById('prod-available').value = p.available===false ? '0' : '1';
   if (p.img) { document.getElementById('img-preview').src=p.img; document.getElementById('img-preview').style.display='block'; document.getElementById('img-upload-hint').style.display='none'; }
   else { document.getElementById('img-preview').style.display='none'; document.getElementById('img-upload-hint').style.display='block'; }
   openModal('modal-product');
@@ -449,18 +482,19 @@ function previewImgUrl(url) {
 }
 
 async function saveProduct() {
-  const name  = document.getElementById('prod-name').value.trim();
-  const price = parseFloat(document.getElementById('prod-price').value);
-  const cat   = document.getElementById('prod-cat').value.trim();
-  const emoji = document.getElementById('prod-emoji').value.trim();
-  const imgUrl= document.getElementById('prod-img').value.trim();
+  const name      = document.getElementById('prod-name').value.trim();
+  const price     = parseFloat(document.getElementById('prod-price').value);
+  const cat       = document.getElementById('prod-cat').value.trim();
+  const imgUrl    = document.getElementById('prod-img').value.trim();
+  const desc      = document.getElementById('prod-desc').value.trim();
+  const available = document.getElementById('prod-available').value !== '0';
   if (!name||isNaN(price)||!cat) { showToast('⚠ Completa nombre, precio y categoría'); return; }
   if (!db) { showToast('⚠ Sin conexión con Firebase'); return; }
   const img = imgBase64||imgUrl||'';
   const isNew = !editingId;
   const product = editingId
-    ? { ...menu.find(x=>x.id===editingId), name, price, cat, emoji, img }
-    : { id:'prod_'+Date.now()+'_'+Math.random().toString(36).substr(2,5), name, price, cat, emoji, img };
+    ? { ...menu.find(x=>x.id===editingId), name, price, cat, img, desc, available }
+    : { id:'prod_'+Date.now()+'_'+Math.random().toString(36).substr(2,5), name, price, cat, img, desc, available };
   setLoading(true);
   try {
     await db.ref('menu/' + product.id).set(product);
@@ -548,7 +582,90 @@ function downloadTemplate() {
 }
 
 // ══ UTILS ══
-function updateCatList(){const cats=[...new Set(menu.map(p=>p.cat))];document.getElementById('cat-list').innerHTML=cats.map(c=>`<option value="${c}">`).join('');}
+function updateCatList(){
+  const cats = getCatOrder();
+  document.getElementById('cat-list').innerHTML = cats.map(c=>`<option value="${c}">`).join('');
+  renderCatOrderUI();
+}
+
+function getCatOrder() {
+  // Ordered cats from catOrder array, then any extras from menu not in list
+  const inMenu = [...new Set(menu.map(p=>p.cat))];
+  const ordered = catOrder.filter(c => inMenu.includes(c));
+  const extras = inMenu.filter(c => !ordered.includes(c));
+  return [...ordered, ...extras];
+}
+
+// ══ CATEGORY ORDER ══
+let catOrder = []; // loaded from Firebase
+let dragSrcIdx = null;
+
+function listenCatOrder() {
+  db.ref('catOrder').on('value', snap => {
+    catOrder = snap.exists() ? snap.val() : [];
+    renderCatOrderUI();
+    // Also re-render table so product order follows cat order
+    renderTable();
+  });
+}
+
+function renderCatOrderUI() {
+  const list = document.getElementById('cat-order-list');
+  if (!list) return;
+  const cats = getCatOrder();
+  list.innerHTML = cats.map((c, i) => {
+    const count = menu.filter(p => p.cat === c).length;
+    return `<div class="cat-order-item" draggable="true"
+      data-idx="${i}" data-cat="${c}"
+      ondragstart="catDragStart(event,${i})"
+      ondragover="catDragOver(event,${i})"
+      ondragend="catDragEnd(event)"
+      ondrop="catDrop(event,${i})">
+      <span class="cat-drag-handle">⠿</span>
+      <span class="cat-order-name">${c}</span>
+      <span class="cat-order-count">${count} producto${count!==1?'s':''}</span>
+    </div>`;
+  }).join('');
+}
+
+function catDragStart(e, idx) {
+  dragSrcIdx = idx;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function catDragOver(e, idx) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.cat-order-item').forEach((el,i) => {
+    el.classList.toggle('drag-over', i === idx && idx !== dragSrcIdx);
+  });
+}
+function catDrop(e, toIdx) {
+  e.preventDefault();
+  if (dragSrcIdx === null || dragSrcIdx === toIdx) return;
+  const cats = getCatOrder();
+  const moved = cats.splice(dragSrcIdx, 1)[0];
+  cats.splice(toIdx, 0, moved);
+  catOrder = cats;
+  renderCatOrderUI();
+}
+function catDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.cat-order-item').forEach(el => el.classList.remove('drag-over','dragging'));
+  dragSrcIdx = null;
+}
+
+async function saveCatOrder() {
+  if (!db) return;
+  const cats = getCatOrder();
+  setLoading(true);
+  try {
+    await db.ref('catOrder').set(cats);
+    showToast('✓ Orden de categorías guardado');
+  } catch(e) { showToast('⚠ Error: ' + e.message); }
+  setLoading(false);
+}
+
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)closeModal(o.id);});});

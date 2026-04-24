@@ -58,6 +58,8 @@ h1,h2{font-family:'DM Serif Display',serif;font-weight:400}
 .product-emoji{font-size:2rem}
 .product-info{flex:1;padding:13px 13px}
 .product-name{font-size:.92rem;font-weight:500;margin-bottom:3px;line-height:1.3}
+.product-desc{font-size:.76rem;color:var(--text2);line-height:1.45;margin-bottom:7px;margin-top:2px}
+.product-img-placeholder{width:100%;height:100%;background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--border2)}
 .product-bottom{display:flex;align-items:center;justify-content:space-between}
 .product-price{font-size:1.05rem;font-weight:600;color:var(--accent)}
 .add-btn{width:32px;height:32px;border-radius:50%;border:none;background:var(--accent);color:#fff;font-size:1.3rem;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
@@ -266,6 +268,7 @@ function onReady() {
   // Mostrar UI inmediatamente con menú por defecto, luego actualizar desde Firebase
   menu = getDefaultMenu();
   initUI();
+  listenCatOrder();
   // Escuchar menú en tiempo real (se actualiza al instante si el editor cambia algo)
   db.ref('menu').on('value', snap => {
     if (snap.exists()) {
@@ -322,9 +325,24 @@ function getDefaultMenu() {
 // ══════════════════════════════════════
 //  CATEGORÍAS Y PRODUCTOS
 // ══════════════════════════════════════
+let catOrder = [];
+
+function listenCatOrder() {
+  db.ref('catOrder').on('value', snap => {
+    catOrder = snap.exists() ? snap.val() : [];
+    renderCats();
+  });
+}
+
+function getOrderedCats() {
+  const inMenu = [...new Set(menu.map(p=>p.cat))];
+  const ordered = catOrder.filter(c => inMenu.includes(c));
+  const extras  = inMenu.filter(c => !ordered.includes(c));
+  return ['Todos', ...ordered, ...extras];
+}
+
 function renderCats() {
-  const cats = ['Todos', ...new Set(menu.map(p => p.cat))];
-  document.getElementById('cats-bar').innerHTML = cats.map(c =>
+  document.getElementById('cats-bar').innerHTML = getOrderedCats().map(c =>
     `<span class="cat-pill${c===selCat?' active':''}" onclick="selectCat('${c}')">${c}</span>`
   ).join('');
 }
@@ -402,8 +420,14 @@ async function sendOrder() {
   if (!mesa) { showToast('⚠ Indica tu mesa o nombre'); mesaInputEl&&mesaInputEl.focus(); return; }
 
   const notas = document.getElementById('notas-input').value.trim();
+  // Get next correlative number from Firebase counter
+  let orderNum = 1;
+  try {
+    const snap = await db.ref('orderCounter').transaction(n => (n||0) + 1);
+    if (snap.committed) orderNum = snap.snapshot.val();
+  } catch(e) { console.warn('Counter error:', e); }
   const order = {
-    id: '#' + String(Date.now()).slice(-5),
+    id: '#' + String(orderNum).padStart(3,'0'),
     items: [...cart],
     note: 'Mesa: ' + mesa + (notas ? ' — ' + notas : ''),
     total: cart.reduce((a,i)=>a+i.price*i.qty,0),
