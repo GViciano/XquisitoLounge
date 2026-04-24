@@ -301,7 +301,7 @@ h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400}
 @keyframes wave-bar{0%,100%{transform:scaleY(.5);opacity:.5}50%{transform:scaleY(1);opacity:1}}
 
 /* ── HISTORY GRID ── */
-.hist-orders-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;padding:.25rem}
+.hist-orders-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;padding:.25rem}
 @media(max-width:600px){.hist-orders-grid{grid-template-columns:1fr}}
 .hist-order-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:1.25rem;position:relative}
 .hist-order-card.paid{border-color:var(--border2);opacity:.85}
@@ -318,10 +318,36 @@ h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400}
 /* Products sold grid */
 .hist-products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
 @media(max-width:600px){.hist-products-grid{grid-template-columns:repeat(2,1fr)}}
-.hist-product-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem;text-align:center}
-.hpc-qty{font-family:'DM Serif Display',serif;font-size:2rem;color:var(--accent);line-height:1;margin-bottom:.2rem}
-.hpc-name{font-size:.82rem;font-weight:500;line-height:1.3;margin-bottom:.2rem}
-.hpc-total{font-size:.75rem;color:var(--text2)}
+.hist-product-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:1.1rem;text-align:center;transition:all .15s}
+.hist-product-card:nth-child(1){border-color:#F59E0B;background:#FFFDF5}
+.hist-product-card:nth-child(2){border-color:#9CA3AF;background:#FAFAFA}
+.hist-product-card:nth-child(3){border-color:#CD7F32;background:#FDF8F5}
+.hpc-medal{font-size:1.4rem;line-height:1;margin-bottom:.2rem;min-height:1.5rem}
+.hpc-qty{font-family:'DM Serif Display',serif;font-size:2.2rem;color:var(--accent);line-height:1;margin-bottom:.25rem}
+.hpc-name{font-size:.82rem;font-weight:500;line-height:1.3;margin-bottom:.25rem}
+.hpc-total{font-size:.78rem;color:var(--text2);font-weight:500}
+
+/* ── MESA MODAL ── */
+.mesa-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.mesa-modal-overlay.open{opacity:1;pointer-events:all}
+@media(min-width:900px){.mesa-modal-overlay{align-items:center}}
+.mesa-modal{background:var(--surface);border-radius:var(--rlg) var(--rlg) 0 0;padding:1.75rem 1.25rem 2.5rem;width:100%;max-width:480px;transform:translateY(60px);transition:transform .3s cubic-bezier(.32,.72,0,1);position:relative}
+@media(min-width:900px){.mesa-modal{border-radius:var(--rlg);transform:scale(.95);max-width:520px}}
+.mesa-modal-overlay.open .mesa-modal{transform:translateY(0)}
+@media(min-width:900px){.mesa-modal-overlay.open .mesa-modal{transform:scale(1)}}
+.mesa-modal-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 1.5rem}
+@media(min-width:900px){.mesa-modal-handle{display:none}}
+.mesa-modal-title{font-family:'DM Serif Display',serif;font-size:1.5rem;margin-bottom:.25rem;text-align:center}
+.mesa-modal-sub{font-size:.82rem;color:var(--text2);text-align:center;margin-bottom:1.5rem}
+.mesa-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
+@media(min-width:400px){.mesa-grid{grid-template-columns:repeat(5,1fr)}}
+.mesa-btn{aspect-ratio:1;border:2px solid var(--border2);border-radius:var(--r);background:var(--surface);font-family:'DM Serif Display',serif;font-size:1.4rem;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;color:var(--text);-webkit-user-select:none;user-select:none}
+.mesa-btn:active{transform:scale(.92);border-color:var(--accent);background:var(--accent-l)}
+.mesa-btn.barra{background:var(--text);color:#fff;border-color:var(--text);font-size:1rem;font-family:'DM Sans',sans-serif;font-weight:600;letter-spacing:.02em}
+.mesa-btn.barra:active{background:var(--accent-d);border-color:var(--accent-d)}
+.mesa-btn-label{font-size:.6rem;font-family:'DM Sans',sans-serif;font-weight:500;color:var(--text2);letter-spacing:.05em;text-transform:uppercase}
+.mesa-comment-row{margin-bottom:1rem}
+.mesa-cancel{width:100%;padding:.7rem;border:1px solid var(--border2);border-radius:var(--r);background:transparent;font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--text2);cursor:pointer;margin-top:.5rem}
 
 /* ── NOTE MODAL ── */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:800;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .22s}
@@ -447,15 +473,13 @@ textarea.form-input{resize:none;min-height:76px;margin-bottom:0}
         <div class="mob-exp" id="mob-exp">
           <div class="mob-detail" id="mob-detail"></div>
           <div class="mob-footer">
-            <div class="mob-note-row" style="display:flex;flex-direction:column;gap:8px">
-              <input class="note-input" id="mob-mesa" placeholder="Nº Mesa" style="font-weight:600;font-size:1rem">
-              <input class="note-input" id="mob-note" placeholder="Comentario (alergias, indicaciones...)">
-            </div>
+            <!-- Mesa and comment collected via modal -->
+          <div id="mob-order-mesa-badge" style="display:none;margin-bottom:8px;padding:8px 12px;background:var(--accent-l);border-radius:var(--rsm);font-size:.85rem;font-weight:500;color:var(--accent-d)"></div>
             <div class="mob-total-row">
               <span class="mob-total-lbl">Total</span>
               <span class="mob-total-val" id="mob-total-big">0,00 €</span>
             </div>
-            <button class="mob-btn-confirm" id="mob-btn-confirm" onclick="confirmOrder()" disabled>✓ Confirmar pedido</button>
+            <button class="mob-btn-confirm" id="mob-btn-confirm" onclick="openMesaModal()" disabled>✓ Confirmar pedido</button>
           </div>
         </div>
       </div>
@@ -512,10 +536,8 @@ textarea.form-input{resize:none;min-height:76px;margin-bottom:0}
           <h2 class="order-title">Pedido actual</h2>
           <span class="order-badge" id="desk-badge">0</span>
         </div>
-        <div style="display:flex;gap:8px;margin-top:.75rem">
-          <input class="note-input" id="desk-mesa" placeholder="Mesa Nº" style="width:110px;flex-shrink:0;font-weight:600;font-size:.9rem;margin-top:0">
-          <input class="note-input" id="desk-note" placeholder="Comentario (alergias, indicaciones...)" style="margin-top:0">
-        </div>
+        <!-- Mesa and comment collected via modal -->
+        <div id="desk-order-mesa-badge" style="display:none;margin-top:.75rem;padding:8px 12px;background:var(--accent-l);border-radius:var(--rsm);font-size:.85rem;font-weight:500;color:var(--accent-d)"></div>
       </div>
       <div class="order-items-wrap" id="desk-items">
         <div class="empty-order"><div class="empty-order-icon">🛒</div>Selecciona productos</div>
@@ -525,7 +547,7 @@ textarea.form-input{resize:none;min-height:76px;margin-bottom:0}
           <span class="total-label">Total</span>
           <span class="total-val" id="desk-total">0,00 €</span>
         </div>
-        <button class="btn-confirm" id="desk-btn-confirm" onclick="confirmOrder()" disabled>✓ Confirmar pedido</button>
+        <button class="btn-confirm" id="desk-btn-confirm" onclick="openMesaModal()" disabled>✓ Confirmar pedido</button>
         <button class="btn-clear" onclick="clearCart()">Vaciar pedido</button>
       </div>
     </div>
@@ -558,6 +580,23 @@ textarea.form-input{resize:none;min-height:76px;margin-bottom:0}
     <div class="notif-total" id="notif-total"></div>
     <button class="notif-btn" onclick="acceptNotif()">✓ Ver pedido</button>
     <button class="notif-dismiss" onclick="dismissNotif()">Cerrar</button>
+  </div>
+</div>
+
+<!-- MESA SELECTOR MODAL -->
+<div class="mesa-modal-overlay" id="modal-mesa-select">
+  <div class="mesa-modal">
+    <div class="mesa-modal-handle"></div>
+    <div class="mesa-modal-title">¿Para qué mesa?</div>
+    <div class="mesa-modal-sub">Selecciona la ubicación del pedido</div>
+    <div class="mesa-grid" id="mesa-grid">
+      <!-- Generated by JS -->
+    </div>
+    <div class="mesa-comment-row">
+      <label style="font-size:.72rem;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:5px">Comentario (opcional)</label>
+      <input class="note-input" id="mesa-modal-comment" placeholder="Alergias, indicaciones especiales..." style="margin-top:0">
+    </div>
+    <button class="mesa-cancel" onclick="closeMesaModal()">Cancelar</button>
   </div>
 </div>
 
@@ -858,10 +897,9 @@ function renderCart() {
   document.getElementById('mob-total-big').textContent = fmt(total);
   document.getElementById('mob-btn-confirm').disabled = count===0;
   const sumEl = document.getElementById('mob-summary');
-  const mesaVal = document.getElementById('mob-mesa') ? document.getElementById('mob-mesa').value.trim() : '';
   if(count>0&&!mobOrderOpen){
     sumEl.style.display='block';
-    sumEl.textContent=(mesaVal?'📍 Mesa '+mesaVal+' — ':'')+cart.map(i=>`${i.qty}× ${i.name}`).join(' · ');
+    sumEl.textContent=cart.map(i=>`${i.qty}× ${i.name}`).join(' · ');
   }
   else sumEl.style.display='none';
   document.getElementById('mob-detail').innerHTML = cart.map((item,idx)=>`
@@ -902,14 +940,51 @@ function mobToggleOrder() {
 }
 
 // ══════════════════════════════════════
+//  MESA SELECTOR MODAL
+// ══════════════════════════════════════
+const NUM_MESAS = 20; // configura cuántas mesas tiene el local
+let pendingMesa = '';
+
+function openMesaModal() {
+  if (!cart.length) return;
+  // Build mesa grid
+  const grid = document.getElementById('mesa-grid');
+  grid.innerHTML = `
+    <button class="mesa-btn barra" onclick="selectMesa('Barra')" style="grid-column:span 2;aspect-ratio:auto;padding:14px;font-size:1rem">
+      🍺 Barra
+    </button>
+    ${Array.from({length:NUM_MESAS},(_,i)=>`
+      <button class="mesa-btn" onclick="selectMesa('${i+1}')">
+        ${i+1}
+        <span class="mesa-btn-label">Mesa</span>
+      </button>`).join('')}
+  `;
+  document.getElementById('mesa-modal-comment').value = '';
+  document.getElementById('modal-mesa-select').classList.add('open');
+}
+
+function closeMesaModal() {
+  document.getElementById('modal-mesa-select').classList.remove('open');
+}
+
+function selectMesa(mesa) {
+  closeMesaModal();
+  const comment = document.getElementById('mesa-modal-comment').value.trim();
+  confirmOrder(String(mesa), comment);
+}
+
+// Close mesa modal on overlay click
+document.getElementById('modal-mesa-select').addEventListener('click', e => {
+  if(e.target === document.getElementById('modal-mesa-select')) closeMesaModal();
+});
+
+// ══════════════════════════════════════
 //  CONFIRM ORDER → FIREBASE
 // ══════════════════════════════════════
-async function confirmOrder() {
+async function confirmOrder(mesaVal, noteVal) {
   if(!cart.length||!currentUser) return;
-  // Read mesa and comment from separate fields
-  const prefix = isDesk() ? 'desk' : 'mob';
-  const mesaVal = (document.getElementById(prefix+'-mesa')||{value:''}).value.trim();
-  const noteVal = (document.getElementById(prefix+'-note')||{value:''}).value.trim();
+  mesaVal = mesaVal || '';
+  noteVal = noteVal || '';
   // Build structured note string
   const noteStr = [mesaVal ? 'Mesa: '+mesaVal : '', noteVal].filter(Boolean).join(' — ');
   // Get next correlative number from Firebase
@@ -935,8 +1010,6 @@ async function confirmOrder() {
   try {
     const ref = db.ref('orders').push();
     await ref.set({...order, fbKey:ref.key, timestamp:firebase.database.ServerValue.TIMESTAMP});
-    if(document.getElementById(prefix+'-mesa')) document.getElementById(prefix+'-mesa').value='';
-    if(document.getElementById(prefix+'-note')) document.getElementById(prefix+'-note').value='';
     cart=[];
     renderCart(); renderProducts();
     mobOrderOpen=false;
@@ -1136,7 +1209,7 @@ function renderHistList(ds,lblId,sumId,listId) {
   if (!listEl) return;
 
   const SC={pending:'s-pending',ready:'s-ready',paid:'s-paid'};
-  const SL={pending:'En prep.',ready:'Listo',paid:'Cobrado'};
+  const SL={pending:'En preparación',ready:'Listo ✅',paid:'Cobrado 💳'};
 
   if (!dayOrders.length) {
     listEl.innerHTML='';
@@ -1147,28 +1220,32 @@ function renderHistList(ds,lblId,sumId,listId) {
   if(emptyEl) emptyEl.style.display='none';
 
   listEl.innerHTML = dayOrders.map(o=>{
-    const mesa = getMesa(o.note);
-    const extraNote = getExtraNotes(o.note);
-    return `<div class="hist-order-card${o.status==='paid'?' paid':''}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.25rem">
-        <span class="hoc-num">${o.id}</span>
-        <span class="status-badge ${SC[o.status]}" style="font-size:.67rem">${SL[o.status]}</span>
+    const mesa    = o.mesa || getMesa(o.note) || '';
+    const comment = o.comment || getExtraNotes(o.note) || '';
+    const cardCls = o.status==='paid' ? '' : (o.status==='pending' ? 's-pending-card' : 's-ready-card');
+    return `<div class="order-card-big ${cardCls}" style="${o.status==='paid'?'opacity:.75;border-color:var(--border2)':''}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;width:100%;margin-bottom:.3rem">
+        <div>
+          <div class="ocb-num">${o.id}</div>
+          <div class="ocb-time">🕐 ${o.time} · ${o.source==='cliente'?'📱 Cliente':'🧑‍🍳 TPV'}</div>
+        </div>
+        <span class="status-badge ${SC[o.status]}" style="font-size:.75rem;padding:5px 12px;flex-shrink:0">${SL[o.status]}</span>
       </div>
-      ${mesa?`<div class="hoc-mesa">Mesa ${mesa}</div>`:''}
-      <div class="hoc-meta">
-        <span>🕐 ${o.time}</span>
-        ${o.source==='cliente'?'<span style="background:var(--accent-l);color:var(--accent-d);padding:1px 7px;border-radius:50px;font-weight:600;font-size:.65rem">📱 Cliente</span>':''}
-        ${extraNote?`<span style="font-style:italic">📝 ${extraNote}</span>`:''}
-      </div>
-      <div class="hoc-items">
+      ${mesa
+        ? `<div class="ocb-mesa">📍 Mesa ${mesa}</div>`
+        : `<div class="ocb-mesa-empty">Sin mesa</div>`
+      }
+      ${comment ? `<div class="ocb-comment">💬 ${comment}</div>` : ''}
+      <div class="ocb-items">
         ${o.items.map(it=>`
-          <div class="hoc-item-row">
-            <span class="hoc-item-name">${it.name}</span>
-            <span class="hoc-item-qty">× ${it.qty}</span>
+          <div class="ocb-item-row">
+            <span class="ocb-item-name">${it.name}</span>
+            <span class="ocb-item-qty">× ${it.qty}</span>
           </div>`).join('')}
       </div>
-      <div class="hoc-foot">
-        <span class="hoc-total">${fmt(o.total)}</span>
+      <div class="ocb-footer">
+        <span class="ocb-total">${fmt(o.total)}</span>
+        <button class="btn-ocb delete" onclick="deleteOrder('${o.fbKey}')" title="Eliminar">🗑</button>
       </div>
     </div>`;
   }).join('');
@@ -1187,9 +1264,11 @@ function renderHistList(ds,lblId,sumId,listId) {
   const prodList    = document.getElementById('hist-products-list');
   if(prodSection && prodList && productList.length) {
     prodSection.style.display='block';
-    prodList.innerHTML = productList.map(p=>`
+    const medals = ['🥇','🥈','🥉'];
+    prodList.innerHTML = productList.map((p,i)=>`
       <div class="hist-product-card">
-        <div class="hpc-qty">${p.qty}</div>
+        <div class="hpc-medal">${medals[i]||''}</div>
+        <div class="hpc-qty">${p.qty}<span style="font-size:.55em;font-family:'DM Sans',sans-serif;color:var(--text2);margin-left:3px">uds</span></div>
         <div class="hpc-name">${p.name}</div>
         <div class="hpc-total">${fmt(p.total)}</div>
       </div>`).join('');
@@ -1198,8 +1277,9 @@ function renderHistList(ds,lblId,sumId,listId) {
 
 function initHist(calId,lblId,sumId,listId){calYear=new Date().getFullYear();calMonth=new Date().getMonth();selDate=todayStr();buildCal(calId,lblId,sumId,listId);}
 function rebuildHist(){
-  if(isDesk()&&deskView==='history') buildCal('desk-cal-wrap','desk-day-lbl','desk-day-sum','desk-hist-list');
-  if(!isDesk()&&mobView==='history') buildCal('mob-cal-wrap','mob-day-lbl','mob-day-sum','mob-hist-list');
+  // Both desktop and mobile use the same center column view-history
+  if(deskView==='history'||mobView==='history')
+    buildCal('mob-cal-wrap','mob-day-lbl','mob-day-sum','mob-hist-list');
 }
 
 // ══════════════════════════════════════
@@ -1219,7 +1299,7 @@ function deskSwitch(view) {
   document.querySelector('.col-right').style.display = (view==='orders'||view==='history') ? 'none' : 'flex';
   ['menu','orders','history'].forEach(v=>document.getElementById('dnav-'+v).classList.toggle('active',v===view));
   if(view==='orders') buildOrdersBig();
-  if(view==='history') initHist('mob-cal-wrap','mob-day-lbl','mob-day-sum','mob-hist-list');
+  if(view==='history') { calYear=new Date().getFullYear();calMonth=new Date().getMonth();selDate=todayStr(); buildCal('mob-cal-wrap','mob-day-lbl','mob-day-sum','mob-hist-list'); }
 }
 function mobSwitch(view) {
   mobView=view;
@@ -1228,7 +1308,7 @@ function mobSwitch(view) {
   document.getElementById('view-history').style.display=view==='history'?'flex':'none';
   ['menu','orders','history'].forEach(v=>document.getElementById('tab-'+v).classList.toggle('active',v===view));
   if(view==='orders') buildOrdersMob();
-  if(view==='history') initHist('mob-cal-wrap','mob-day-lbl','mob-day-sum','mob-hist-list');
+  if(view==='history') { calYear=new Date().getFullYear();calMonth=new Date().getMonth();selDate=todayStr(); buildCal('mob-cal-wrap','mob-day-lbl','mob-day-sum','mob-hist-list'); }
 }
 
 // ══════════════════════════════════════
