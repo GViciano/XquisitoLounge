@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Carta — Xquisito Lounge</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#F8F6F1;--surface:#FFF;--surface2:#F0EDE6;
+  --text:#1A1814;--text2:#6B6760;--text3:#9B9891;
+  --accent:#C17D3C;--accent-l:#F5EBD8;--accent-d:#8B5A28;
+  --border:#E5E2DB;--border2:#D0CCC3;
+  --ok:#3B6D11;--ok-bg:#EAF3DE;
+  --r:14px;--rlg:22px;--rsm:8px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+h1,h2{font-family:'DM Serif Display',serif;font-weight:400}
+.app{max-width:480px;margin:0 auto;background:var(--surface);min-height:100vh;display:flex;flex-direction:column}
+
+/* SPLASH / LOADING */
+#splash{
+  position:fixed;inset:0;background:var(--text);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:1000;transition:opacity .4s;
+}
+#splash.hide{opacity:0;pointer-events:none}
+.splash-logo{font-size:3rem;margin-bottom:1rem}
+.splash-name{font-family:'DM Serif Display',serif;font-size:2rem;color:#fff;margin-bottom:.5rem}
+.splash-sub{font-size:.82rem;color:rgba(255,255,255,.45);margin-bottom:2rem}
+.splash-spinner{width:28px;height:28px;border:2px solid rgba(255,255,255,.2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+.splash-error{font-size:.82rem;color:#f87171;margin-top:1rem;text-align:center;padding:0 2rem;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* HERO */
+.hero{padding:2.5rem 1.5rem 1.5rem;background:var(--text);color:#fff;text-align:center;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:-50%;background:radial-gradient(ellipse at 60% 40%,rgba(193,125,60,.28) 0%,transparent 60%);pointer-events:none}
+.hero-label{font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:.75rem}
+.hero-title{font-family:'DM Serif Display',serif;font-size:2.2rem;line-height:1.1;margin-bottom:.5rem;color:#fff}
+.hero-sub{font-size:.85rem;color:rgba(255,255,255,.5);margin-bottom:1.25rem}
+.mesa-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 16px;border-radius:50px;border:1px solid rgba(255,255,255,.25);font-size:.82rem;color:#fff;font-weight:500;background:rgba(193,125,60,.25)}
+
+/* CATEGORIES */
+.cats-scroll{overflow-x:auto;white-space:nowrap;padding:1rem 1.25rem;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:50;scrollbar-width:none}
+.cats-scroll::-webkit-scrollbar{display:none}
+.cat-pill{display:inline-flex;align-items:center;gap:5px;padding:7px 16px;border-radius:50px;border:1px solid var(--border2);background:var(--surface);font-size:.8rem;font-weight:500;color:var(--text2);cursor:pointer;margin-right:6px;transition:all .15s}
+.cat-pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cat-pill:active{transform:scale(.95)}
+
+/* PRODUCTS */
+.content{flex:1;padding:1.25rem 1.25rem 100px}
+.products-list{display:flex;flex-direction:column;gap:12px}
+.product-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;display:flex;-webkit-user-select:none;user-select:none;align-items:stretch}
+.product-card.in-cart{border-color:var(--accent);border-width:2px}
+.product-img-wrap{width:96px;flex-shrink:0;background:var(--surface2);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.product-img{width:100%;height:100%;object-fit:cover}
+.product-emoji{font-size:2rem}
+.product-info{flex:1;padding:13px 13px}
+.product-name{font-size:.92rem;font-weight:500;margin-bottom:3px;line-height:1.3}
+.product-bottom{display:flex;align-items:center;justify-content:space-between}
+.product-price{font-size:1.05rem;font-weight:600;color:var(--accent)}
+.add-btn{width:32px;height:32px;border-radius:50%;border:none;background:var(--accent);color:#fff;font-size:1.3rem;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;flex-shrink:0}
+.add-btn:active{background:var(--accent-d);transform:scale(.88)}
+.qty-mini{display:flex;align-items:center;gap:8px}
+.qty-btn-m{width:30px;height:30px;border-radius:50%;border:1px solid var(--border2);background:var(--surface2);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s}
+.qty-btn-m:active{background:var(--border2)}
+.qty-num-m{font-size:.88rem;font-weight:600;min-width:16px;text-align:center}
+
+/* CART FLOAT */
+.cart-float{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:100;width:calc(100% - 3rem);max-width:420px;pointer-events:none}
+.cart-bar{background:var(--text);color:#fff;border-radius:50px;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;pointer-events:all;box-shadow:0 8px 28px rgba(0,0,0,.22);transition:all .3s cubic-bezier(.32,.72,0,1);transform:translateY(100px);opacity:0}
+.cart-bar.visible{transform:translateY(0);opacity:1}
+.cart-bubble{background:var(--accent);border-radius:50px;font-size:.78rem;font-weight:600;padding:3px 10px}
+.cart-bar-lbl{font-weight:500;font-size:.92rem}
+.cart-bar-total{font-weight:600;font-size:.95rem}
+
+/* CART MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:flex-end;backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--surface);border-radius:var(--rlg) var(--rlg) 0 0;padding:1.5rem 1.25rem 2rem;width:100%;max-width:480px;margin:0 auto;transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);max-height:90vh;overflow-y:auto;position:relative}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-handle{width:40px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 1.25rem}
+.modal-title{font-family:'DM Serif Display',serif;font-size:1.3rem;margin-bottom:1.25rem}
+.modal-close{position:absolute;top:1.25rem;right:1.25rem;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text2)}
+.cart-item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border)}
+.cart-item:last-child{border-bottom:none}
+.ci-info{flex:1}
+.ci-name{font-size:.88rem;font-weight:500}
+.ci-unit{font-size:.76rem;color:var(--text2)}
+.ci-total{font-weight:600;font-size:.9rem;min-width:52px;text-align:right}
+.order-sum{margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border)}
+.sum-total{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1.25rem}
+.sum-lbl{font-size:.95rem;font-weight:500}
+.sum-val{font-family:'DM Serif Display',serif;font-size:2rem}
+.mesa-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 13px;border-radius:50px;background:var(--accent-l);color:var(--accent-d);font-size:.82rem;font-weight:500;margin-bottom:1rem;border:1px solid rgba(193,125,60,.25)}
+.form-label{display:block;font-size:.75rem;font-weight:600;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em}
+.form-input{width:100%;padding:10px 13px;border:1px solid var(--border2);border-radius:var(--rsm);font-family:'DM Sans',sans-serif;font-size:.92rem;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s;margin-bottom:10px}
+.form-input:focus{border-color:var(--accent)}
+textarea.form-input{resize:none;min-height:68px;margin-bottom:0}
+.btn-full{width:100%;padding:1rem;border:none;border-radius:var(--r);background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;font-size:.97rem;font-weight:600;cursor:pointer;transition:all .15s;margin-top:1rem;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-full:active{background:var(--accent-d);transform:scale(.98)}
+.btn-full:disabled{opacity:.4;pointer-events:none}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border2);margin-top:8px}
+.btn-outline:active{background:var(--surface2)}
+
+/* LOADING BAR */
+.loading-bar{position:fixed;top:0;left:0;right:0;height:3px;background:var(--accent);z-index:2000;transform:scaleX(0);transform-origin:left}
+.loading-bar.active{animation:loading-anim 1.5s ease-in-out infinite}
+@keyframes loading-anim{0%{transform:scaleX(0) translateX(0)}50%{transform:scaleX(.6) translateX(60%)}100%{transform:scaleX(0) translateX(200%)}}
+
+/* SUCCESS */
+.success-screen{text-align:center;padding:3rem 1.5rem;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.success-icon{font-size:4rem;margin-bottom:1.5rem;animation:pop .5s cubic-bezier(.32,.72,0,1)}
+@keyframes pop{0%{transform:scale(0)}60%{transform:scale(1.2)}100%{transform:scale(1)}}
+.success-title{font-family:'DM Serif Display',serif;font-size:2rem;margin-bottom:.75rem}
+.success-sub{color:var(--text2);line-height:1.6;margin-bottom:1.5rem;font-size:.9rem}
+.success-mesa{font-size:1rem;font-weight:500;color:var(--accent-d);background:var(--accent-l);padding:8px 20px;border-radius:50px;margin-bottom:1rem;display:inline-block}
+.order-num{font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--accent);margin-bottom:2rem}
+
+/* TOAST */
+.toast{position:fixed;bottom:8rem;left:50%;transform:translateX(-50%) translateY(40px);background:var(--text);color:#fff;padding:9px 18px;border-radius:50px;font-size:.82rem;font-weight:500;z-index:400;transition:all .28s;opacity:0}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+</style>
+</head>
+<body>
+
+<div class="loading-bar" id="loading-bar"></div>
+
+<!-- SPLASH mientras conecta con Firebase -->
+<div id="splash">
+  <div class="splash-logo">☕</div>
+  <div class="splash-name">Xquisito Lounge</div>
+  <div class="splash-sub">Cargando carta...</div>
+  <div class="splash-spinner"></div>
+  <div class="splash-error" id="splash-error"></div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app" style="display:none">
+  <div id="main-view">
+    <div class="hero">
+      <div class="hero-label">Bienvenido</div>
+      <h1 class="hero-title">Nuestra Carta</h1>
+      <p class="hero-sub">Elige lo que más te apetezca</p>
+      <span class="mesa-chip">📍 <span id="hero-mesa-text">Cargando...</span></span>
+    </div>
+    <div class="cats-scroll" id="cats-bar"></div>
+    <div class="content">
+      <div class="products-list" id="products-list"></div>
+    </div>
+  </div>
+
+  <div id="success-view" style="display:none" class="success-screen">
+    <div class="success-icon">✅</div>
+    <h2 class="success-title">¡Pedido enviado!</h2>
+    <p class="success-sub">Hemos recibido tu pedido. En breve te lo traemos.</p>
+    <div class="success-mesa" id="success-mesa-lbl"></div>
+    <div class="order-num" id="success-num">#001</div>
+    <button class="btn-full" style="max-width:280px" onclick="resetBack()">Volver a la carta</button>
+  </div>
+</div>
+
+<!-- CART FLOAT -->
+<div class="cart-float">
+  <div class="cart-bar" id="cart-bar" onclick="openCart()">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="cart-bubble" id="cart-count">0</div>
+      <span class="cart-bar-lbl">Ver pedido</span>
+    </div>
+    <span class="cart-bar-total" id="cart-total">0,00 €</span>
+  </div>
+</div>
+
+<!-- CART MODAL -->
+<div class="modal-overlay" id="modal-cart">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-cart')">✕</button>
+    <h2 class="modal-title">Tu pedido</h2>
+    <div id="cart-items"></div>
+    <div class="order-sum">
+      <div class="sum-total">
+        <span class="sum-lbl">Total</span>
+        <span class="sum-val" id="cart-modal-total">0,00 €</span>
+      </div>
+      <!-- Mesa: si viene por URL se muestra como badge, si no, campo de texto -->
+      <div id="mesa-badge-wrap" style="display:none">
+        <div class="mesa-badge" id="modal-mesa-badge">📍 ...</div>
+      </div>
+      <div id="mesa-input-wrap">
+        <label class="form-label">Tu mesa o nombre</label>
+        <input class="form-input" id="mesa-input" placeholder="Ej: Mesa 3, Ana...">
+      </div>
+      <div style="margin-top:.875rem">
+        <label class="form-label">Notas o alergias</label>
+        <textarea class="form-input" id="notas-input" placeholder="Sin gluten, sin lactosa..."></textarea>
+      </div>
+    </div>
+    <button class="btn-full" id="btn-send" onclick="sendOrder()">
+      <span id="btn-send-text">Enviar pedido →</span>
+    </button>
+    <button class="btn-full btn-outline" onclick="closeModal('modal-cart')">Seguir eligiendo</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDKs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-auth-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
+
+<script>
+// ══════════════════════════════════════
+//  FIREBASE CONFIG
+//  ⚠ Sustituye CLIENTE_EMAIL y CLIENTE_PASSWORD por el usuario
+//    de solo escritura que crees en Firebase Authentication.
+//    Este usuario NO tiene acceso al TPV.
+// ══════════════════════════════════════
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyDWxvMExAWPGl1UPHQudaHWOaAiKEcfZPE",
+  authDomain:        "xquisitolounge.firebaseapp.com",
+  databaseURL:       "https://xquisitolounge-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:         "xquisitolounge",
+  storageBucket:     "xquisitolounge.firebasestorage.app",
+  messagingSenderId: "564605918403",
+  appId:             "1:564605918403:web:1597395d1fe347fca11676",
+};
+// Crea este usuario en Firebase Authentication y pon su contrasena aqui:
+const CLIENTE_EMAIL    = "cliente@xquisitolounge.com";
+const CLIENTE_PASSWORD = "CAMBIA_ESTA_PASSWORD";
+
+// ── Parámetros de URL ──
+const params    = new URLSearchParams(window.location.search);
+const mesaParam = params.get('mesa') || params.get('m') || '';
+
+let db = null;
+let menu = [];
+let cart = [], selCat = 'Todos';
+const fmt = n => n.toFixed(2).replace('.',',') + ' €';
+const todayStr = () => new Date().toISOString().split('T')[0];
+
+// ── Init Firebase y login silencioso ──
+firebase.initializeApp(FIREBASE_CONFIG);
+const auth = firebase.auth();
+
+auth.onAuthStateChanged(user => {
+  if (user) {
+    db = firebase.database();
+    onReady();
+  }
+});
+
+// Login automático con usuario cliente (invisible para el usuario)
+auth.signInWithEmailAndPassword(CLIENTE_EMAIL, CLIENTE_PASSWORD)
+  .catch(err => {
+    document.querySelector('.splash-spinner').style.display = 'none';
+    const errEl = document.getElementById('splash-error');
+    errEl.style.display = 'block';
+    errEl.textContent = 'Error de conexión. Por favor avisa al personal. (' + err.code + ')';
+  });
+
+function onReady() {
+  // Cargar menú desde Firebase
+  db.ref('menu').once('value').then(snap => {
+    if (snap.exists()) {
+      const m = [];
+      snap.forEach(c => m.push(c.val()));
+      if (m.length) menu = m;
+    }
+    if (!menu.length) menu = getDefaultMenu();
+    initUI();
+  }).catch(() => {
+    menu = getDefaultMenu();
+    initUI();
+  });
+}
+
+function initUI() {
+  // Ocultar splash, mostrar app
+  const splash = document.getElementById('splash');
+  splash.classList.add('hide');
+  setTimeout(() => splash.style.display = 'none', 400);
+  document.getElementById('app').style.display = 'flex';
+
+  // Mesa
+  document.getElementById('hero-mesa-text').textContent = mesaParam ? 'Mesa ' + mesaParam : 'Pide desde aquí';
+  if (mesaParam) {
+    document.getElementById('mesa-badge-wrap').style.display = 'block';
+    document.getElementById('modal-mesa-badge').textContent = '📍 Mesa ' + mesaParam;
+    document.getElementById('mesa-input-wrap').style.display = 'none';
+  }
+
+  renderCats();
+  renderProducts();
+}
+
+// ══════════════════════════════════════
+//  MENÚ POR DEFECTO
+// ══════════════════════════════════════
+function getDefaultMenu() {
+  return JSON.parse(localStorage.getItem('cafe_menu') || 'null') || [
+    {id:'c1',name:'Café solo',price:1.20,cat:'Cafés',emoji:'☕',img:''},
+    {id:'c2',name:'Café con leche',price:1.50,cat:'Cafés',emoji:'☕',img:''},
+    {id:'c3',name:'Capuchino',price:2.20,cat:'Cafés',emoji:'☕',img:''},
+    {id:'c4',name:'Americano',price:1.80,cat:'Cafés',emoji:'☕',img:''},
+    {id:'t1',name:'Té verde',price:1.80,cat:'Infusiones',emoji:'🍵',img:''},
+    {id:'t2',name:'Manzanilla',price:1.60,cat:'Infusiones',emoji:'🍵',img:''},
+    {id:'z1',name:'Zumo naranja',price:2.80,cat:'Zumos',emoji:'🍊',img:''},
+    {id:'z2',name:'Smoothie verde',price:3.50,cat:'Zumos',emoji:'🥤',img:''},
+    {id:'b1',name:'Cerveza',price:2.50,cat:'Bebidas',emoji:'🍺',img:''},
+    {id:'b2',name:'Agua 50cl',price:1.20,cat:'Bebidas',emoji:'💧',img:''},
+    {id:'f1',name:'Tostada con tomate',price:2.80,cat:'Desayunos',emoji:'🍞',img:''},
+    {id:'f2',name:'Croissant mantequilla',price:2.20,cat:'Desayunos',emoji:'🥐',img:''},
+    {id:'f3',name:'Bocadillo jamón',price:4.50,cat:'Bocadillos',emoji:'🥖',img:''},
+    {id:'f4',name:'Bocadillo mixto',price:3.80,cat:'Bocadillos',emoji:'🥪',img:''},
+    {id:'p1',name:'Pincho tortilla',price:2.50,cat:'Tapas',emoji:'🥚',img:''},
+    {id:'p2',name:'Croquetas (6ud)',price:5.50,cat:'Tapas',emoji:'🟡',img:''},
+  ];
+}
+
+// ══════════════════════════════════════
+//  CATEGORÍAS Y PRODUCTOS
+// ══════════════════════════════════════
+function renderCats() {
+  const cats = ['Todos', ...new Set(menu.map(p => p.cat))];
+  document.getElementById('cats-bar').innerHTML = cats.map(c =>
+    `<span class="cat-pill${c===selCat?' active':''}" onclick="selectCat('${c}')">${c}</span>`
+  ).join('');
+}
+function selectCat(c) { selCat=c; renderCats(); renderProducts(); }
+
+function renderProducts() {
+  const list = selCat === 'Todos' ? menu : menu.filter(p => p.cat === selCat);
+  document.getElementById('products-list').innerHTML = list.map(p => {
+    const qty = (cart.find(i => i.id===p.id)||{qty:0}).qty;
+    const imgEl = p.img
+      ? `<img class="product-img" src="${p.img}" onerror="this.parentElement.innerHTML='<span class=\\'product-emoji\\'>${p.emoji||'🍽'}</span>'">`
+      : `<span class="product-emoji">${p.emoji||'🍽'}</span>`;
+    const ctrl = qty === 0
+      ? `<button class="add-btn" onclick="event.stopPropagation();addToCart('${p.id}')">+</button>`
+      : `<div class="qty-mini">
+           <button class="qty-btn-m" onclick="event.stopPropagation();chgQty('${p.id}',-1)">−</button>
+           <span class="qty-num-m">${qty}</span>
+           <button class="qty-btn-m" onclick="event.stopPropagation();chgQty('${p.id}',1)">+</button>
+         </div>`;
+    return `<div class="product-card${qty>0?' in-cart':''}">
+      <div class="product-img-wrap">${imgEl}</div>
+      <div class="product-info">
+        <div class="product-name">${p.name}</div>
+        <div class="product-bottom"><span class="product-price">${fmt(p.price)}</span>${ctrl}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addToCart(id) {
+  const p=menu.find(x=>x.id===id); if(!p) return;
+  const ex=cart.find(i=>i.id===id);
+  if(ex) ex.qty++; else cart.push({id,name:p.name,price:p.price,qty:1});
+  updateCartBar(); renderProducts();
+}
+function chgQty(id,d) {
+  const idx=cart.findIndex(i=>i.id===id); if(idx===-1) return;
+  cart[idx].qty+=d;
+  if(cart[idx].qty<=0) cart.splice(idx,1);
+  updateCartBar(); renderProducts();
+  if(document.getElementById('modal-cart').classList.contains('open')) renderCartModal();
+}
+
+function updateCartBar() {
+  const count=cart.reduce((a,i)=>a+i.qty,0);
+  const total=cart.reduce((a,i)=>a+i.price*i.qty,0);
+  document.getElementById('cart-count').textContent=count;
+  document.getElementById('cart-total').textContent=fmt(total);
+  document.getElementById('cart-bar').classList.toggle('visible',count>0);
+}
+
+function openCart() { renderCartModal(); openModal('modal-cart'); }
+function renderCartModal() {
+  document.getElementById('cart-items').innerHTML = cart.map(item=>`
+    <div class="cart-item">
+      <div class="ci-info"><div class="ci-name">${item.name}</div><div class="ci-unit">${fmt(item.price)} × ${item.qty}</div></div>
+      <div class="qty-mini">
+        <button class="qty-btn-m" onclick="chgQty('${item.id}',-1)">−</button>
+        <span class="qty-num-m">${item.qty}</span>
+        <button class="qty-btn-m" onclick="chgQty('${item.id}',1)">+</button>
+      </div>
+      <span class="ci-total">${fmt(item.price*item.qty)}</span>
+    </div>`).join('');
+  document.getElementById('cart-modal-total').textContent = fmt(cart.reduce((a,i)=>a+i.price*i.qty,0));
+}
+
+// ══════════════════════════════════════
+//  ENVIAR PEDIDO → FIREBASE
+// ══════════════════════════════════════
+async function sendOrder() {
+  if (!cart.length || !db) return;
+
+  const mesaInputEl = document.getElementById('mesa-input');
+  const mesa = mesaParam || (mesaInputEl ? mesaInputEl.value.trim() : '');
+  if (!mesa) { showToast('⚠ Indica tu mesa o nombre'); mesaInputEl&&mesaInputEl.focus(); return; }
+
+  const notas = document.getElementById('notas-input').value.trim();
+  const order = {
+    id: '#' + String(Date.now()).slice(-5),
+    items: [...cart],
+    note: 'Mesa: ' + mesa + (notas ? ' — ' + notas : ''),
+    total: cart.reduce((a,i)=>a+i.price*i.qty,0),
+    status: 'pending',
+    date: todayStr(),
+    time: new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}),
+    source: 'cliente',
+    mesa,
+  };
+
+  const btn=document.getElementById('btn-send');
+  btn.disabled=true;
+  document.getElementById('btn-send-text').innerHTML='<div class="spinner"></div>';
+  setLoading(true);
+
+  try {
+    const ref = db.ref('orders').push();
+    await ref.set({...order, fbKey:ref.key, timestamp:firebase.database.ServerValue.TIMESTAMP});
+
+    document.getElementById('success-num').textContent = order.id;
+    document.getElementById('success-mesa-lbl').textContent = '📍 Mesa ' + mesa;
+    closeModal('modal-cart');
+    document.getElementById('main-view').style.display='none';
+    document.getElementById('success-view').style.display='flex';
+    document.getElementById('cart-bar').classList.remove('visible');
+    cart=[];
+  } catch(e) {
+    showToast('⚠ Error al enviar: '+e.message);
+    btn.disabled=false;
+    document.getElementById('btn-send-text').textContent='Enviar pedido →';
+  }
+  setLoading(false);
+}
+
+function resetBack() {
+  document.getElementById('success-view').style.display='none';
+  document.getElementById('main-view').style.display='block';
+  const mi=document.getElementById('mesa-input'); if(mi) mi.value='';
+  document.getElementById('notas-input').value='';
+  updateCartBar(); renderProducts();
+}
+
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)closeModal(o.id);});});
+function setLoading(on){document.getElementById('loading-bar').classList.toggle('active',on);}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+</script>
+</body>
+</html>

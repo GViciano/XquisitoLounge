@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>TPV — Xquisito Lounge</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#F5F3EE;--surface:#FFF;--surface2:#EDEBE5;
+  --text:#1A1814;--text2:#6B6760;--text3:#A8A49E;
+  --accent:#C17D3C;--accent-l:#F5EBD8;--accent-d:#8B5A28;
+  --border:#E2DFD8;--border2:#CFCBC2;
+  --ok:#3B6D11;--ok-bg:#EAF3DE;
+  --warn:#92400E;--warn-bg:#FEF3C7;
+  --err:#A32D2D;--err-bg:#FCEBEB;
+  --r:10px;--rlg:18px;--rsm:6px;
+  --sh:0 1px 6px rgba(0,0,0,.07);--sh-lg:0 6px 28px rgba(0,0,0,.11);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* ── LOGIN SCREEN ── */
+#login-screen{
+  position:fixed;inset:0;z-index:2000;
+  background:var(--text);
+  display:flex;align-items:center;justify-content:center;padding:1.5rem;
+}
+.login-box{
+  background:var(--surface);border-radius:20px;
+  padding:2.25rem 2rem;width:100%;max-width:380px;
+  box-shadow:0 24px 80px rgba(0,0,0,.35);
+}
+.login-logo{font-size:2.2rem;margin-bottom:0.5rem}
+.login-title{font-family:'DM Serif Display',serif;font-size:1.75rem;margin-bottom:0.25rem}
+.login-sub{font-size:0.83rem;color:var(--text2);margin-bottom:1.75rem}
+.form-label{display:block;font-size:0.75rem;font-weight:600;color:var(--text2);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em}
+.form-input{width:100%;padding:11px 14px;border:1.5px solid var(--border2);border-radius:var(--rsm);font-family:'DM Sans',sans-serif;font-size:0.95rem;color:var(--text);background:var(--surface);outline:none;transition:border-color .15s;margin-bottom:14px}
+.form-input:focus{border-color:var(--accent)}
+.login-btn{width:100%;padding:.9rem;border:none;border-radius:var(--r);background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+.login-btn:active{background:var(--accent-d)}
+.login-btn:disabled{opacity:.5;pointer-events:none}
+.login-error{font-size:.8rem;color:var(--err);background:var(--err-bg);padding:8px 12px;border-radius:var(--rsm);margin-top:.75rem;display:none;text-align:center}
+.login-remember{display:flex;align-items:center;gap:8px;font-size:.82rem;color:var(--text2);margin-bottom:1.25rem;cursor:pointer}
+.login-remember input{accent-color:var(--accent);width:16px;height:16px;cursor:pointer}
+.spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── MOBILE LAYOUT ── */
+.layout{display:flex;flex-direction:column;height:100vh;max-width:480px;margin:0 auto;background:var(--surface);box-shadow:var(--sh-lg)}
+@media(min-width:900px){
+  .layout{max-width:100%;flex-direction:row;height:100vh;box-shadow:none;background:var(--bg)}
+  .col-left{width:210px;flex-shrink:0;background:var(--text);display:flex;flex-direction:column}
+  .col-center{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--surface);overflow:hidden}
+  .col-right{width:320px;flex-shrink:0;display:flex;flex-direction:column;background:var(--surface);border-left:1px solid var(--border);overflow:hidden}
+  .mobile-header{display:none!important}
+  .mobile-tabs{display:none!important}
+  .mobile-order-panel{display:none!important}
+}
+@media(max-width:899px){.col-left{display:none}.col-right{display:none}}
+
+/* ── LEFT NAV ── */
+.brand{padding:1.5rem 1.25rem 1rem;border-bottom:1px solid rgba(255,255,255,.1)}
+.brand-title{font-family:'DM Serif Display',serif;font-size:1.3rem;color:#fff}
+.brand-sub{font-size:.68rem;color:rgba(255,255,255,.4);margin-top:2px;text-transform:uppercase;letter-spacing:.08em}
+.fb-status{display:flex;align-items:center;gap:5px;margin-top:6px}
+.fb-dot{width:7px;height:7px;border-radius:50%;background:#6b6b6b;flex-shrink:0;transition:background .3s}
+.fb-dot.online{background:#4ade80}.fb-dot.offline{background:#f87171}
+.fb-lbl{font-size:.68rem;color:rgba(255,255,255,.4)}
+.user-row{display:flex;align-items:center;gap:7px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.08)}
+.user-email{font-size:.68rem;color:rgba(255,255,255,.45);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-menu{flex:1;padding:.875rem .75rem;display:flex;flex-direction:column;gap:2px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:var(--r);cursor:pointer;font-size:.85rem;font-weight:500;color:rgba(255,255,255,.55);transition:all .15s;border:none;background:transparent;width:100%;text-align:left}
+.nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+.nav-item.active{background:var(--accent);color:#fff}
+.nav-item-icon{width:20px;text-align:center}
+.nav-badge{margin-left:auto;background:var(--warn-bg);color:var(--warn);font-size:.65rem;font-weight:700;padding:1px 7px;border-radius:50px}
+.nav-bottom{padding:.875rem .75rem;border-top:1px solid rgba(255,255,255,.1)}
+.nav-ext{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:var(--r);font-size:.78rem;color:rgba(255,255,255,.45);cursor:pointer;border:none;background:transparent;width:100%;text-align:left;transition:all .15s}
+.nav-ext:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.75)}
+.nav-ext.logout{color:rgba(241,100,100,.7)}
+.nav-ext.logout:hover{background:rgba(241,100,100,.1);color:#f87171}
+
+/* ── MOBILE HEADER ── */
+.mobile-header{padding:.875rem 1rem 0;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.mob-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+.mob-title{font-family:'DM Serif Display',serif;font-size:1.35rem}
+.mob-right{display:flex;align-items:center;gap:8px}
+.mob-fb-dot{width:7px;height:7px;border-radius:50%;background:#6b6b6b;transition:background .3s}
+.mob-fb-dot.online{background:#4ade80}.mob-fb-dot.offline{background:#f87171}
+.mob-logout-btn{background:none;border:1px solid var(--border2);border-radius:var(--rsm);padding:5px 10px;font-size:.72rem;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif}
+.mobile-tabs{display:flex;gap:3px;background:var(--surface2);border-radius:var(--rsm);padding:3px;margin-bottom:.875rem}
+.tab-btn{flex:1;padding:7px 4px;border:none;background:transparent;border-radius:calc(var(--rsm) - 1px);font-family:'DM Sans',sans-serif;font-size:.73rem;font-weight:500;color:var(--text2);cursor:pointer;transition:all .15s;white-space:nowrap}
+.tab-btn.active{background:var(--surface);color:var(--text);box-shadow:var(--sh)}
+
+/* ── CATEGORIES ── */
+.cats-scroll{overflow-x:auto;white-space:nowrap;padding:.75rem 1rem;border-bottom:1px solid var(--border);scrollbar-width:none;flex-shrink:0}
+.cats-scroll::-webkit-scrollbar{display:none}
+.cat-pill{display:inline-flex;align-items:center;padding:6px 13px;border-radius:50px;border:1px solid var(--border2);background:var(--surface);font-size:.78rem;font-weight:500;color:var(--text2);cursor:pointer;margin-right:5px;transition:all .15s}
+.cat-pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cat-pill:active{transform:scale(.95)}
+
+/* ── PRODUCTS ── */
+.products-area{flex:1;overflow-y:auto;padding:1rem}
+.products-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:900px){.products-grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1200px){.products-grid{grid-template-columns:repeat(4,1fr)}}
+.product-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .15s;position:relative;-webkit-user-select:none;user-select:none}
+.product-card:hover{border-color:var(--border2);box-shadow:var(--sh)}
+.product-card:active{transform:scale(.96);border-color:var(--accent)}
+.product-img{width:100%;aspect-ratio:4/3;object-fit:cover;display:block;background:var(--surface2)}
+.product-placeholder{width:100%;aspect-ratio:4/3;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:2rem}
+.product-info{padding:9px 10px 11px}
+.product-name{font-size:.82rem;font-weight:500;line-height:1.3;margin-bottom:3px}
+.product-price{font-size:.95rem;font-weight:600;color:var(--accent)}
+.qty-badge{position:absolute;top:7px;left:7px;background:var(--text);color:#fff;font-size:.7rem;font-weight:600;padding:2px 8px;border-radius:50px}
+
+/* ── DESKTOP RIGHT — ORDER PANEL ── */
+.order-header{padding:1.25rem 1.25rem .875rem;border-bottom:1px solid var(--border);flex-shrink:0}
+.order-hrow{display:flex;align-items:center;justify-content:space-between}
+.order-title{font-family:'DM Serif Display',serif;font-size:1.2rem}
+.order-badge{background:var(--accent);color:#fff;font-size:.7rem;font-weight:600;padding:2px 9px;border-radius:50px}
+.note-input{width:100%;padding:7px 11px;border:1px solid var(--border2);border-radius:var(--rsm);font-family:'DM Sans',sans-serif;font-size:.82rem;color:var(--text);background:var(--bg);outline:none;transition:border-color .15s;margin-top:.75rem}
+.note-input:focus{border-color:var(--accent);background:var(--surface)}
+.order-items-wrap{flex:1;overflow-y:auto;padding:.75rem 1.25rem}
+.doi{display:flex;align-items:center;gap:7px;padding:8px 0;border-bottom:1px solid var(--border)}
+.doi:last-child{border-bottom:none}
+.doi-name{flex:1;font-size:.82rem;font-weight:500;min-width:0;line-height:1.3}
+.doi-note{font-size:.68rem;color:var(--text2)}
+.doi-qbtn{width:24px;height:24px;border-radius:50%;border:1px solid var(--border2);background:var(--surface2);font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .1s}
+.doi-qbtn:active{background:var(--border2)}
+.doi-num{font-size:.8rem;font-weight:600;min-width:16px;text-align:center}
+.doi-notebtn{background:none;border:none;font-size:.8rem;color:var(--text3);cursor:pointer;padding:2px;flex-shrink:0}
+.doi-price{font-size:.82rem;font-weight:600;min-width:46px;text-align:right;flex-shrink:0}
+.empty-order{text-align:center;padding:2.5rem 1rem;color:var(--text3);font-size:.83rem}
+.empty-order-icon{font-size:2.5rem;margin-bottom:.75rem;opacity:.3}
+.order-footer-desk{padding:1rem 1.25rem;border-top:1px solid var(--border);flex-shrink:0}
+.total-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.875rem}
+.total-label{font-size:.83rem;color:var(--text2)}
+.total-val{font-family:'DM Serif Display',serif;font-size:1.7rem}
+.btn-confirm{width:100%;padding:.875rem;border:none;border-radius:var(--r);background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-confirm:active{background:var(--accent-d);transform:scale(.98)}
+.btn-confirm:disabled{opacity:.35;pointer-events:none}
+.btn-clear{width:100%;padding:.55rem;border:1px solid var(--border2);border-radius:var(--r);background:transparent;font-family:'DM Sans',sans-serif;font-size:.8rem;color:var(--text2);cursor:pointer;margin-top:6px;transition:all .15s}
+.btn-clear:hover{background:var(--err-bg);color:var(--err);border-color:transparent}
+
+/* ── MOBILE ORDER PANEL ── */
+.mobile-order-panel{background:var(--surface);border-top:1.5px solid var(--border);flex-shrink:0}
+.mot{display:flex;align-items:center;justify-content:space-between;padding:.75rem 1rem;cursor:pointer;-webkit-user-select:none;user-select:none}
+.mot-left{display:flex;align-items:center;gap:9px}
+.mot-dot{background:var(--accent);color:#fff;font-size:.7rem;font-weight:600;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mot-label{font-weight:500;font-size:.88rem}
+.mot-total{font-size:.9rem;font-weight:600;color:var(--accent)}
+.mot-chev{color:var(--text3);transition:transform .22s;font-size:.72rem}
+.mot-chev.open{transform:rotate(180deg)}
+.mob-summary{padding:0 1rem .5rem;font-size:.78rem;color:var(--text2);line-height:1.55;display:none;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3}
+.mob-exp{max-height:0;overflow:hidden;transition:max-height .28s ease}
+.mob-exp.open{max-height:55vh;overflow-y:auto}
+.mob-detail{padding:0 1rem}
+.moi{display:flex;align-items:center;gap:7px;padding:8px 0;border-bottom:1px solid var(--border)}
+.moi:last-child{border-bottom:none}
+.moi-name{flex:1;font-size:.8rem;font-weight:500;line-height:1.3}
+.moi-note{font-size:.67rem;color:var(--text2);display:block}
+.moi-qbtn{width:26px;height:26px;border-radius:50%;border:1px solid var(--border2);background:var(--surface2);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.moi-num{font-size:.8rem;font-weight:600;min-width:16px;text-align:center}
+.moi-notebtn{background:none;border:none;font-size:.78rem;color:var(--text3);cursor:pointer;padding:2px}
+.moi-price{font-size:.8rem;font-weight:600;min-width:44px;text-align:right}
+.mob-footer{padding:.875rem 1rem;border-top:1px solid var(--border)}
+.mob-note-row{margin-bottom:10px}
+.mob-total-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.mob-total-lbl{font-size:.8rem;color:var(--text2)}
+.mob-total-val{font-family:'DM Serif Display',serif;font-size:1.55rem}
+.mob-btn-confirm{width:100%;padding:.875rem;border:none;border-radius:var(--r);background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:600;cursor:pointer}
+.mob-btn-confirm:disabled{opacity:.35;pointer-events:none}
+
+/* ── ORDERS / HISTORY CARDS ── */
+.view-scroll{flex:1;overflow-y:auto;padding:1rem}
+.order-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;margin-bottom:10px}
+.oc-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:7px;gap:8px}
+.oc-num{font-family:'DM Serif Display',serif;font-size:1rem}
+.oc-time{font-size:.7rem;color:var(--text2);margin-left:6px}
+.oc-note{font-size:.7rem;color:var(--text2);margin-top:2px}
+.status-badge{padding:3px 10px;border-radius:50px;font-size:.67rem;font-weight:600;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;flex-shrink:0}
+.s-pending{background:var(--warn-bg);color:var(--warn)}
+.s-ready{background:var(--ok-bg);color:var(--ok)}
+.s-paid{background:var(--surface2);color:var(--text2)}
+.oc-items{font-size:.78rem;color:var(--text2);line-height:1.55;margin-bottom:8px;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.oc-foot{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.oc-total{font-weight:600;font-size:.92rem}
+.oc-actions{display:flex;gap:5px}
+.btn-sm{padding:5px 12px;border-radius:var(--rsm);border:1px solid var(--border2);background:var(--surface2);font-family:'DM Sans',sans-serif;font-size:.74rem;font-weight:500;cursor:pointer;color:var(--text);transition:all .12s}
+.btn-sm.ok{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-sm:active{transform:scale(.94)}
+.empty{text-align:center;padding:3rem 1rem;color:var(--text3)}
+.empty-icon{font-size:3rem;margin-bottom:1rem;opacity:.3}
+
+/* ── CALENDAR ── */
+.hist-top{padding:1rem 1rem .5rem;border-bottom:1px solid var(--border);flex-shrink:0}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:.875rem}
+.cal-month{font-family:'DM Serif Display',serif;font-size:1.1rem}
+.cal-arrow{width:30px;height:30px;border:1px solid var(--border2);border-radius:var(--rsm);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.85rem;color:var(--text2);transition:all .12s}
+.cal-arrow:hover{background:var(--surface2)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-dow{text-align:center;font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);padding:3px 0}
+.cal-day{text-align:center;padding:6px 2px;border-radius:var(--rsm);cursor:pointer;font-size:.8rem;position:relative;transition:all .12s;border:1px solid transparent;line-height:1}
+.cal-day:hover{background:var(--surface2)}
+.cal-day.today{font-weight:600;color:var(--accent)}
+.cal-day.selected{background:var(--accent);color:#fff;font-weight:600}
+.cal-day.has-orders::after{content:'';position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--accent)}
+.cal-day.selected::after{background:rgba(255,255,255,.7)}
+.cal-day.empty-day{pointer-events:none;color:var(--text3)}
+.hist-day-bar{display:flex;justify-content:space-between;align-items:baseline;padding:.875rem 1rem .5rem;flex-shrink:0}
+.hist-day-lbl{font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--text2)}
+.hist-day-sum{font-family:'DM Serif Display',serif;font-size:1rem;color:var(--text)}
+.hist-list{flex:1;overflow-y:auto;padding:0 1rem 1rem}
+.hist-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px 13px;margin-bottom:8px}
+.hc-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.hc-id{font-size:.83rem;font-weight:600}
+.hc-time{font-size:.7rem;color:var(--text2)}
+.hc-items{font-size:.76rem;color:var(--text2);line-height:1.5;margin-bottom:5px}
+.hc-foot{display:flex;justify-content:space-between;align-items:center}
+.hc-total{font-weight:600;font-size:.88rem}
+.hist-empty{text-align:center;padding:2rem 1rem;color:var(--text3);font-size:.83rem}
+
+/* ── 🔔 NEW ORDER NOTIFICATION ── */
+.notif-overlay{
+  position:fixed;inset:0;z-index:900;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
+  opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.notif-overlay.show{opacity:1;pointer-events:all}
+.notif-box{
+  background:var(--surface);border-radius:24px;padding:2.5rem 2rem;
+  width:90%;max-width:340px;text-align:center;
+  box-shadow:0 24px 80px rgba(0,0,0,.3);
+  transform:scale(.85);transition:transform .35s cubic-bezier(.32,.72,0,1);position:relative;
+}
+.notif-overlay.show .notif-box{transform:scale(1)}
+.notif-pulse{
+  width:80px;height:80px;border-radius:50%;background:var(--accent-l);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 1.25rem;font-size:2.5rem;
+  animation:notif-ring 1s ease-in-out infinite;
+}
+@keyframes notif-ring{0%,100%{box-shadow:0 0 0 0 rgba(193,125,60,.4)}50%{box-shadow:0 0 0 18px rgba(193,125,60,0)}}
+.notif-title{font-family:'DM Serif Display',serif;font-size:1.8rem;margin-bottom:.5rem}
+.notif-subtitle{font-size:.9rem;color:var(--text2);margin-bottom:.25rem}
+.notif-mesa{font-size:1rem;font-weight:600;color:var(--accent);margin-bottom:.25rem}
+.notif-items{font-size:.82rem;color:var(--text2);margin-bottom:.25rem;line-height:1.5}
+.notif-total{font-family:'DM Serif Display',serif;font-size:1.5rem;margin-bottom:1.5rem}
+.notif-btn{width:100%;padding:1rem;border:none;border-radius:var(--r);background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer}
+.notif-dismiss{width:100%;padding:.6rem;border:1px solid var(--border2);border-radius:var(--r);background:transparent;font-family:'DM Sans',sans-serif;font-size:.85rem;color:var(--text2);cursor:pointer;margin-top:8px}
+.notif-count{position:absolute;top:-10px;right:-10px;background:var(--err);color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;box-shadow:0 2px 8px rgba(163,45,45,.4)}
+.notif-waves{display:flex;align-items:center;justify-content:center;gap:4px;margin-bottom:1.25rem;height:32px}
+.notif-wave{width:4px;border-radius:2px;background:var(--accent);animation:wave-bar .8s ease-in-out infinite}
+.notif-wave:nth-child(1){height:12px;animation-delay:0s}
+.notif-wave:nth-child(2){height:24px;animation-delay:.1s}
+.notif-wave:nth-child(3){height:32px;animation-delay:.2s}
+.notif-wave:nth-child(4){height:20px;animation-delay:.3s}
+.notif-wave:nth-child(5){height:14px;animation-delay:.4s}
+@keyframes wave-bar{0%,100%{transform:scaleY(.5);opacity:.5}50%{transform:scaleY(1);opacity:1}}
+
+/* ── NOTE MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:800;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .22s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+@media(min-width:900px){.modal-overlay{align-items:center}}
+.modal{background:var(--surface);border-radius:var(--rlg) var(--rlg) 0 0;padding:1.5rem 1.25rem 2rem;width:100%;max-width:420px;transform:translateY(60px);transition:transform .28s cubic-bezier(.32,.72,0,1);position:relative}
+@media(min-width:900px){.modal{border-radius:var(--rlg);transform:scale(.95)}}
+.modal-overlay.open .modal{transform:translateY(0)}
+@media(min-width:900px){.modal-overlay.open .modal{transform:scale(1)}}
+.modal-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 1.25rem}
+@media(min-width:900px){.modal-handle{display:none}}
+.modal-title{font-family:'DM Serif Display',serif;font-size:1.15rem;margin-bottom:.875rem}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text2)}
+textarea.form-input{resize:none;min-height:76px;margin-bottom:0}
+.btn-modal{width:100%;padding:.8rem;border:none;border-radius:var(--r);background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;margin-top:1rem}
+
+/* ── LOADING BAR ── */
+.loading-bar{position:fixed;top:0;left:0;right:0;height:3px;background:var(--accent);z-index:3000;transform:scaleX(0);transform-origin:left}
+.loading-bar.active{animation:loading-anim 1.5s ease-in-out infinite}
+@keyframes loading-anim{0%{transform:scaleX(0) translateX(0)}50%{transform:scaleX(.6) translateX(60%)}100%{transform:scaleX(0) translateX(200%)}}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(50px);background:var(--text);color:#fff;padding:9px 18px;border-radius:50px;font-size:.8rem;font-weight:500;z-index:700;transition:all .28s cubic-bezier(.32,.72,0,1);white-space:nowrap;opacity:0}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+</style>
+</head>
+<body>
+
+<div class="loading-bar" id="loading-bar"></div>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">☕</div>
+    <div class="login-title">Xquisito Lounge</div>
+    <div class="login-sub">Accede con tu usuario para continuar</div>
+    <label class="form-label">Email</label>
+    <input class="form-input" id="login-email" type="email" placeholder="usuario@cafeteria.com" autocomplete="email">
+    <label class="form-label">Contraseña</label>
+    <input class="form-input" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password"
+      onkeydown="if(event.key==='Enter')doLogin()">
+    <label class="login-remember">
+      <input type="checkbox" id="login-remember" checked> Recordar sesión en este dispositivo
+    </label>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">
+      <span id="login-btn-text">Entrar</span>
+    </button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ══ MAIN APP ══ -->
+<div class="layout" id="main-app" style="display:none">
+
+  <!-- LEFT NAV -->
+  <div class="col-left">
+    <div class="brand">
+      <div class="brand-title">☕ Xquisito</div>
+      <div class="brand-sub">Sistema TPV</div>
+      <div class="fb-status">
+        <div class="fb-dot" id="fb-dot-desk"></div>
+        <span class="fb-lbl" id="fb-lbl-desk">Conectando...</span>
+      </div>
+      <div class="user-row">
+        <span class="user-email" id="desk-user-email"></span>
+      </div>
+    </div>
+    <nav class="nav-menu">
+      <button class="nav-item active" id="dnav-menu" onclick="deskSwitch('menu')">
+        <span class="nav-item-icon">🍽</span> Carta
+      </button>
+      <button class="nav-item" id="dnav-orders" onclick="deskSwitch('orders')">
+        <span class="nav-item-icon">📋</span> Pedidos activos
+        <span id="dnav-badge" class="nav-badge" style="display:none">0</span>
+      </button>
+      <button class="nav-item" id="dnav-history" onclick="deskSwitch('history')">
+        <span class="nav-item-icon">📅</span> Histórico
+      </button>
+    </nav>
+    <div class="nav-bottom">
+      <button class="nav-ext" onclick="window.open('editor-carta.html','_blank')"><span>✏️</span> Editor de carta</button>
+      <button class="nav-ext logout" onclick="doLogout()"><span>🚪</span> Cerrar sesión</button>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="col-center">
+    <div class="mobile-header">
+      <div class="mob-title-row">
+        <span class="mob-title">☕ TPV</span>
+        <div class="mob-right">
+          <div class="mob-fb-dot" id="fb-dot-mob"></div>
+          <button class="mob-logout-btn" onclick="doLogout()">Salir</button>
+        </div>
+      </div>
+      <div class="mobile-tabs">
+        <button class="tab-btn active" id="tab-menu" onclick="mobSwitch('menu')">🍽 Carta</button>
+        <button class="tab-btn" id="tab-orders" onclick="mobSwitch('orders')">📋 Pedidos</button>
+        <button class="tab-btn" id="tab-history" onclick="mobSwitch('history')">📅 Historial</button>
+      </div>
+    </div>
+
+    <!-- VIEW: CARTA -->
+    <div id="view-menu" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+      <div class="cats-scroll" id="cats-bar"></div>
+      <div class="products-area"><div class="products-grid" id="products-grid"></div></div>
+      <!-- MOBILE ORDER PANEL -->
+      <div class="mobile-order-panel">
+        <div class="mot" onclick="mobToggleOrder()">
+          <div class="mot-left">
+            <div class="mot-dot" id="mot-dot">0</div>
+            <span class="mot-label">Pedido actual</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="mot-total" id="mot-total">0,00 €</span>
+            <span class="mot-chev" id="mot-chev">▼</span>
+          </div>
+        </div>
+        <div class="mob-summary" id="mob-summary"></div>
+        <div class="mob-exp" id="mob-exp">
+          <div class="mob-detail" id="mob-detail"></div>
+          <div class="mob-footer">
+            <div class="mob-note-row"><input class="note-input" id="mob-note" placeholder="Mesa, nombre, nota..."></div>
+            <div class="mob-total-row">
+              <span class="mob-total-lbl">Total</span>
+              <span class="mob-total-val" id="mob-total-big">0,00 €</span>
+            </div>
+            <button class="mob-btn-confirm" id="mob-btn-confirm" onclick="confirmOrder()" disabled>✓ Confirmar pedido</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: PEDIDOS (mobile) -->
+    <div id="view-orders" style="display:none;flex:1;overflow-y:auto;padding:1rem">
+      <div id="mob-orders-list"></div>
+    </div>
+
+    <!-- VIEW: HISTORIAL (mobile) -->
+    <div id="view-history" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+      <div class="hist-top" id="mob-cal-wrap"></div>
+      <div class="hist-day-bar">
+        <span class="hist-day-lbl" id="mob-day-lbl">Hoy</span>
+        <span class="hist-day-sum" id="mob-day-sum"></span>
+      </div>
+      <div class="hist-list" id="mob-hist-list"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="col-right">
+    <div id="desk-order-panel" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+      <div class="order-header">
+        <div class="order-hrow">
+          <h2 class="order-title">Pedido actual</h2>
+          <span class="order-badge" id="desk-badge">0</span>
+        </div>
+        <input class="note-input" id="desk-note" placeholder="Mesa, nombre, nota...">
+      </div>
+      <div class="order-items-wrap" id="desk-items">
+        <div class="empty-order"><div class="empty-order-icon">🛒</div>Selecciona productos</div>
+      </div>
+      <div class="order-footer-desk">
+        <div class="total-row">
+          <span class="total-label">Total</span>
+          <span class="total-val" id="desk-total">0,00 €</span>
+        </div>
+        <button class="btn-confirm" id="desk-btn-confirm" onclick="confirmOrder()" disabled>✓ Confirmar pedido</button>
+        <button class="btn-clear" onclick="clearCart()">Vaciar pedido</button>
+      </div>
+    </div>
+    <div id="desk-orders-panel" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+      <div style="padding:1.25rem 1.25rem .875rem;border-bottom:1px solid var(--border);flex-shrink:0">
+        <h2 class="order-title">Pedidos activos</h2>
+      </div>
+      <div class="view-scroll" id="desk-orders-list"></div>
+    </div>
+    <div id="desk-history-panel" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+      <div class="hist-top" id="desk-cal-wrap"></div>
+      <div class="hist-day-bar">
+        <span class="hist-day-lbl" id="desk-day-lbl">Hoy</span>
+        <span class="hist-day-sum" id="desk-day-sum"></span>
+      </div>
+      <div class="hist-list" id="desk-hist-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 🔔 NOTIFICACIÓN NUEVO PEDIDO -->
+<div class="notif-overlay" id="notif-overlay">
+  <div class="notif-box">
+    <div class="notif-count" id="notif-count" style="display:none">1</div>
+    <div class="notif-pulse">🔔</div>
+    <div class="notif-waves">
+      <div class="notif-wave"></div><div class="notif-wave"></div><div class="notif-wave"></div>
+      <div class="notif-wave"></div><div class="notif-wave"></div>
+    </div>
+    <div class="notif-title">¡Nuevo pedido!</div>
+    <div class="notif-subtitle" id="notif-subtitle"></div>
+    <div class="notif-mesa" id="notif-mesa"></div>
+    <div class="notif-items" id="notif-items"></div>
+    <div class="notif-total" id="notif-total"></div>
+    <button class="notif-btn" onclick="acceptNotif()">✓ Ver pedido</button>
+    <button class="notif-dismiss" onclick="dismissNotif()">Cerrar</button>
+  </div>
+</div>
+
+<!-- NOTE MODAL -->
+<div class="modal-overlay" id="modal-note">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="closeModal('modal-note')">✕</button>
+    <div class="modal-title">Nota del producto</div>
+    <label class="form-label">Indicación especial</label>
+    <textarea class="form-input" id="note-modal-input" placeholder="Sin azúcar, extra caliente..."></textarea>
+    <button class="btn-modal" onclick="saveNote()">Guardar</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDKs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-auth-compat.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
+
+<script>
+// ══════════════════════════════════════
+//  FIREBASE CONFIG
+// ══════════════════════════════════════
+
+
+firebase.initializeApp({
+  apiKey: "AIzaSyDWxvMExAWPGl1UPHQudaHWOaAiKEcfZPE",
+  authDomain: "xquisitolounge.firebaseapp.com",
+  databaseURL: "https://xquisitolounge-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "xquisitolounge",
+});
+
+
+const auth = firebase.auth();
+const db   = firebase.database();
+
+let currentUser = null;
+let orders = [];
+let knownOrderIds = new Set();
+let pendingNotifs = [];
+let notifActive = false;
+let isFirstLoad = true;
+
+// ══════════════════════════════════════
+//  AUTH — LOGIN / LOGOUT
+// ══════════════════════════════════════
+auth.onAuthStateChanged(user => {
+  if (user) {
+    currentUser = user;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-app').style.display = 'flex';
+    document.getElementById('desk-user-email').textContent = user.email;
+    initMain();
+  } else {
+    currentUser = null;
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('main-app').style.display = 'none';
+  }
+});
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-pass').value;
+  const remember = document.getElementById('login-remember').checked;
+  const errEl = document.getElementById('login-error');
+  const btn   = document.getElementById('login-btn');
+
+  if (!email || !pass) { showLoginError('Introduce email y contraseña'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Entrando...';
+  errEl.style.display = 'none';
+
+  try {
+    // Persistencia: LOCAL = recuerda sesión, SESSION = solo esta pestaña
+    await auth.setPersistence(
+      remember ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION
+    );
+    await auth.signInWithEmailAndPassword(email, pass);
+    // onAuthStateChanged se encarga del resto
+  } catch(e) {
+    const msgs = {
+      'auth/user-not-found':     'Usuario no encontrado',
+      'auth/wrong-password':     'Contraseña incorrecta',
+      'auth/invalid-email':      'Email no válido',
+      'auth/too-many-requests':  'Demasiados intentos. Espera unos minutos.',
+      'auth/invalid-credential': 'Email o contraseña incorrectos',
+    };
+    showLoginError(msgs[e.code] || 'Error: ' + e.message);
+    btn.disabled = false;
+    btn.innerHTML = '<span id="login-btn-text">Entrar</span>';
+  }
+}
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function doLogout() {
+  if (!confirm('¿Cerrar sesión?')) return;
+  await auth.signOut();
+  orders = []; knownOrderIds = new Set();
+}
+
+// ══════════════════════════════════════
+//  INIT AFTER LOGIN
+// ══════════════════════════════════════
+function initMain() {
+  db.ref('.info/connected').on('value', snap => setStatus(snap.val() === true));
+  menu = getMenu();
+  renderCats(); renderProducts(); renderCart(); updateBadge();
+  listenOrders();
+}
+
+function setStatus(online) {
+  document.getElementById('fb-dot-desk').className = 'fb-dot ' + (online?'online':'offline');
+  document.getElementById('fb-lbl-desk').textContent = online ? 'En línea' : 'Sin conexión';
+  document.getElementById('fb-dot-mob').className = 'mob-fb-dot ' + (online?'online':'offline');
+}
+
+// ══════════════════════════════════════
+//  MENU
+// ══════════════════════════════════════
+const DEF = [
+  {id:'c1',name:'Café solo',price:1.20,cat:'Cafés',emoji:'☕',img:''},
+  {id:'c2',name:'Café con leche',price:1.50,cat:'Cafés',emoji:'☕',img:''},
+  {id:'c3',name:'Capuchino',price:2.20,cat:'Cafés',emoji:'☕',img:''},
+  {id:'c4',name:'Americano',price:1.80,cat:'Cafés',emoji:'☕',img:''},
+  {id:'t1',name:'Té verde',price:1.80,cat:'Infusiones',emoji:'🍵',img:''},
+  {id:'t2',name:'Manzanilla',price:1.60,cat:'Infusiones',emoji:'🍵',img:''},
+  {id:'z1',name:'Zumo naranja',price:2.80,cat:'Zumos',emoji:'🍊',img:''},
+  {id:'z2',name:'Smoothie verde',price:3.50,cat:'Zumos',emoji:'🥤',img:''},
+  {id:'b1',name:'Cerveza',price:2.50,cat:'Bebidas',emoji:'🍺',img:''},
+  {id:'b2',name:'Agua 50cl',price:1.20,cat:'Bebidas',emoji:'💧',img:''},
+  {id:'f1',name:'Tostada con tomate',price:2.80,cat:'Desayunos',emoji:'🍞',img:''},
+  {id:'f2',name:'Croissant mantequilla',price:2.20,cat:'Desayunos',emoji:'🥐',img:''},
+  {id:'f3',name:'Bocadillo jamón',price:4.50,cat:'Bocadillos',emoji:'🥖',img:''},
+  {id:'f4',name:'Bocadillo mixto',price:3.80,cat:'Bocadillos',emoji:'🥪',img:''},
+  {id:'p1',name:'Pincho tortilla',price:2.50,cat:'Tapas',emoji:'🥚',img:''},
+  {id:'p2',name:'Croquetas (6ud)',price:5.50,cat:'Tapas',emoji:'🟡',img:''},
+];
+const getMenu = () => JSON.parse(localStorage.getItem('cafe_menu')||'null') || DEF;
+if (!localStorage.getItem('cafe_menu')) localStorage.setItem('cafe_menu', JSON.stringify(DEF));
+let menu = getMenu();
+let cart = [], selCat = 'Todos';
+let mobOrderOpen = false, noteTargetIdx = null;
+let deskView = 'menu', mobView = 'menu';
+const isDesk = () => window.innerWidth >= 900;
+const todayStr = () => new Date().toISOString().split('T')[0];
+const fmt = n => n.toFixed(2).replace('.',',') + ' €';
+
+// ══════════════════════════════════════
+//  REALTIME ORDERS LISTENER
+// ══════════════════════════════════════
+function listenOrders() {
+  db.ref('orders').orderByChild('timestamp').on('value', snap => {
+    const prev = new Set(knownOrderIds);
+    orders = []; knownOrderIds = new Set();
+    snap.forEach(child => {
+      const o = { fbKey: child.key, ...child.val() };
+      orders.push(o);
+      knownOrderIds.add(child.key);
+    });
+    orders.reverse();
+
+    if (!isFirstLoad) {
+      orders.forEach(o => {
+        if (!prev.has(o.fbKey) && o.status === 'pending') pendingNotifs.push(o);
+      });
+      if (pendingNotifs.length > 0 && !notifActive) showNextNotif();
+    }
+    isFirstLoad = false;
+
+    updateBadge();
+    if (isDesk()) {
+      if (deskView === 'orders') buildOrdersList('desk-orders-list');
+      if (deskView === 'history') rebuildHist();
+    } else {
+      if (mobView === 'orders') buildOrdersList('mob-orders-list');
+      if (mobView === 'history') rebuildHist();
+    }
+  });
+}
+
+// ══════════════════════════════════════
+//  🔔 NOTIFICATIONS
+// ══════════════════════════════════════
+function showNextNotif() {
+  if (!pendingNotifs.length) { notifActive = false; return; }
+  notifActive = true;
+  const count = pendingNotifs.length;
+  const o = pendingNotifs[pendingNotifs.length - 1];
+  pendingNotifs = [];
+  document.getElementById('notif-count').textContent = count;
+  document.getElementById('notif-count').style.display = count > 1 ? 'flex' : 'none';
+  document.getElementById('notif-subtitle').textContent = count > 1 ? `${count} pedidos nuevos` : `Pedido ${o.id}`;
+  document.getElementById('notif-mesa').textContent = o.note ? o.note.split('—')[0].trim() : '';
+  document.getElementById('notif-items').textContent = o.items.map(i=>`${i.qty}× ${i.name}`).join(', ');
+  document.getElementById('notif-total').textContent = fmt(o.total);
+  document.getElementById('notif-overlay').classList.add('show');
+  playSound();
+  setTimeout(() => { if(document.getElementById('notif-overlay').classList.contains('show')) dismissNotif(); }, 30000);
+}
+
+function playSound() {
+  try {
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    [[880,0,.12],[880,.15,.12],[1100,.32,.25]].forEach(([f,s,d])=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value=f; o.type='sine';
+      g.gain.setValueAtTime(0,ctx.currentTime+s);
+      g.gain.linearRampToValueAtTime(.4,ctx.currentTime+s+.02);
+      g.gain.linearRampToValueAtTime(0,ctx.currentTime+s+d);
+      o.start(ctx.currentTime+s); o.stop(ctx.currentTime+s+d+.05);
+    });
+  } catch(e){}
+}
+
+function acceptNotif() { dismissNotif(); isDesk()?deskSwitch('orders'):mobSwitch('orders'); }
+function dismissNotif() {
+  document.getElementById('notif-overlay').classList.remove('show');
+  notifActive = false;
+  if (pendingNotifs.length > 0) setTimeout(showNextNotif, 400);
+}
+
+// ══════════════════════════════════════
+//  CATEGORIES & PRODUCTS
+// ══════════════════════════════════════
+function renderCats() {
+  const cats = ['Todos',...new Set(menu.map(p=>p.cat))];
+  document.getElementById('cats-bar').innerHTML = cats.map(c=>
+    `<span class="cat-pill${c===selCat?' active':''}" onclick="selectCat('${c}')">${c}</span>`
+  ).join('');
+}
+function selectCat(c) { selCat=c; renderCats(); renderProducts(); }
+
+function renderProducts() {
+  const list = selCat==='Todos' ? menu : menu.filter(p=>p.cat===selCat);
+  document.getElementById('products-grid').innerHTML = list.map(p=>{
+    const qty = (cart.find(i=>i.id===p.id)||{qty:0}).qty;
+    const img = p.img ? `<img class="product-img" src="${p.img}" onerror="this.style.display='none';this.nextSibling.style.display='flex'">` : '';
+    const ph  = `<div class="product-placeholder"${p.img?' style="display:none"':''}>${p.emoji||'🍽'}</div>`;
+    return `<div class="product-card" onclick="addToCart('${p.id}')">
+      ${img}${ph}
+      <div class="product-info"><div class="product-name">${p.name}</div><div class="product-price">${fmt(p.price)}</div></div>
+      ${qty>0?`<div class="qty-badge">${qty}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+//  CART
+// ══════════════════════════════════════
+function addToCart(id) {
+  const p = menu.find(x=>x.id===id); if(!p) return;
+  const ex = cart.find(i=>i.id===id);
+  if(ex) ex.qty++; else cart.push({id,name:p.name,price:p.price,qty:1,note:''});
+  renderCart(); renderProducts();
+  if(!isDesk()&&!mobOrderOpen) mobToggleOrder();
+}
+function changeQty(idx,delta) {
+  cart[idx].qty+=delta;
+  if(cart[idx].qty<=0) cart.splice(idx,1);
+  renderCart(); renderProducts();
+}
+function clearCart() { cart=[]; renderCart(); renderProducts(); }
+
+function renderCart() {
+  const count = cart.reduce((a,i)=>a+i.qty,0);
+  const total = cart.reduce((a,i)=>a+i.price*i.qty,0);
+
+  // Mobile
+  document.getElementById('mot-dot').textContent = count;
+  document.getElementById('mot-total').textContent = fmt(total);
+  document.getElementById('mob-total-big').textContent = fmt(total);
+  document.getElementById('mob-btn-confirm').disabled = count===0;
+  const sumEl = document.getElementById('mob-summary');
+  if(count>0&&!mobOrderOpen){sumEl.style.display='block';sumEl.textContent=cart.map(i=>`${i.qty}× ${i.name}`).join(' · ');}
+  else sumEl.style.display='none';
+  document.getElementById('mob-detail').innerHTML = cart.map((item,idx)=>`
+    <div class="moi">
+      <div class="moi-name">${item.name}${item.note?`<span class="moi-note">📝 ${item.note}</span>`:''}</div>
+      <button class="moi-qbtn" onclick="changeQty(${idx},-1)">−</button>
+      <span class="moi-num">${item.qty}</span>
+      <button class="moi-qbtn" onclick="changeQty(${idx},1)">+</button>
+      <button class="moi-notebtn" onclick="openNoteModal(${idx})">📝</button>
+      <span class="moi-price">${fmt(item.price*item.qty)}</span>
+    </div>`).join('');
+
+  // Desktop
+  document.getElementById('desk-badge').textContent = count;
+  document.getElementById('desk-total').textContent = fmt(total);
+  document.getElementById('desk-btn-confirm').disabled = count===0;
+  document.getElementById('desk-items').innerHTML = count===0
+    ? '<div class="empty-order"><div class="empty-order-icon">🛒</div>Selecciona productos</div>'
+    : cart.map((item,idx)=>`
+      <div class="doi">
+        <div class="doi-name">${item.name}${item.note?`<span class="doi-note"><br>📝 ${item.note}</span>`:''}</div>
+        <div style="display:flex;align-items:center;gap:5px">
+          <button class="doi-qbtn" onclick="changeQty(${idx},-1)">−</button>
+          <span class="doi-num">${item.qty}</span>
+          <button class="doi-qbtn" onclick="changeQty(${idx},1)">+</button>
+        </div>
+        <button class="doi-notebtn" onclick="openNoteModal(${idx})">📝</button>
+        <span class="doi-price">${fmt(item.price*item.qty)}</span>
+      </div>`).join('');
+}
+
+function mobToggleOrder() {
+  mobOrderOpen=!mobOrderOpen;
+  document.getElementById('mob-exp').classList.toggle('open',mobOrderOpen);
+  document.getElementById('mot-chev').classList.toggle('open',mobOrderOpen);
+  const s=document.getElementById('mob-summary');
+  s.style.display=(cart.length>0&&!mobOrderOpen)?'block':'none';
+}
+
+// ══════════════════════════════════════
+//  CONFIRM ORDER → FIREBASE
+// ══════════════════════════════════════
+async function confirmOrder() {
+  if(!cart.length||!currentUser) return;
+  const noteEl = isDesk() ? document.getElementById('desk-note') : document.getElementById('mob-note');
+  const order = {
+    id: '#'+String(Date.now()).slice(-5),
+    items: [...cart],
+    note: noteEl.value.trim(),
+    total: cart.reduce((a,i)=>a+i.price*i.qty,0),
+    status: 'pending',
+    date: todayStr(),
+    time: new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}),
+    source: 'tpv',
+    createdBy: currentUser.email
+  };
+  setLoading(true);
+  try {
+    const ref = db.ref('orders').push();
+    await ref.set({...order, fbKey:ref.key, timestamp:firebase.database.ServerValue.TIMESTAMP});
+    noteEl.value=''; cart=[];
+    renderCart(); renderProducts();
+    mobOrderOpen=false;
+    document.getElementById('mob-exp').classList.remove('open');
+    document.getElementById('mot-chev').classList.remove('open');
+    document.getElementById('mob-summary').style.display='none';
+    showToast('✓ Pedido '+order.id+' confirmado');
+  } catch(e) { showToast('⚠ Error: '+e.message); }
+  setLoading(false);
+}
+
+// ══════════════════════════════════════
+//  ORDERS LIST
+// ══════════════════════════════════════
+function buildOrdersList(containerId) {
+  const active = orders.filter(o=>o.status!=='paid');
+  const el = document.getElementById(containerId);
+  if(!active.length){el.innerHTML='<div class="empty"><div class="empty-icon">📋</div><p>No hay pedidos activos</p></div>';return;}
+  const SL={pending:'En preparación',ready:'Listo',paid:'Cobrado'};
+  const SC={pending:'s-pending',ready:'s-ready',paid:'s-paid'};
+  el.innerHTML = active.map(o=>`
+    <div class="order-card">
+      <div class="oc-head">
+        <div>
+          <span class="oc-num">${o.id}</span><span class="oc-time">${o.time}</span>
+          ${o.source==='cliente'?'<span style="font-size:.65rem;background:var(--accent-l);color:var(--accent-d);padding:1px 7px;border-radius:50px;margin-left:5px;font-weight:600">📱 Cliente</span>':''}
+          ${o.note?`<div class="oc-note">📝 ${o.note}</div>`:''}
+        </div>
+        <span class="status-badge ${SC[o.status]}">${SL[o.status]}</span>
+      </div>
+      <div class="oc-items">${o.items.map(it=>`${it.qty}× ${it.name}`).join(', ')}</div>
+      <div class="oc-foot">
+        <span class="oc-total">${fmt(o.total)}</span>
+        <div class="oc-actions">
+          ${o.status==='pending'?`<button class="btn-sm ok" onclick="setStatus('${o.fbKey}','ready')">Listo ✓</button>`:''}
+          ${o.status==='ready'?`<button class="btn-sm ok" onclick="setStatus('${o.fbKey}','paid')">Cobrado ✓</button>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function setStatus(fbKey,status) {
+  db.ref('orders/'+fbKey).update({status});
+  const o=orders.find(x=>x.fbKey===fbKey); if(o) o.status=status;
+  updateBadge();
+  if(isDesk()) buildOrdersList('desk-orders-list'); else buildOrdersList('mob-orders-list');
+  showToast(status==='ready'?'✓ Pedido listo':'✓ Cobrado');
+}
+
+function updateBadge() {
+  const n=orders.filter(o=>o.status==='pending').length;
+  const b=document.getElementById('dnav-badge');
+  if(b){b.textContent=n;b.style.display=n?'':'none';}
+}
+
+// ══════════════════════════════════════
+//  CALENDAR / HISTORY
+// ══════════════════════════════════════
+let calYear=new Date().getFullYear(), calMonth=new Date().getMonth(), selDate=todayStr();
+const MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DOWS=['L','M','X','J','V','S','D'];
+
+function buildCal(calId,lblId,sumId,listId) {
+  const el=document.getElementById(calId); if(!el) return;
+  const fd=new Date(calYear,calMonth,1).getDay(), offset=(fd+6)%7;
+  const dim=new Date(calYear,calMonth+1,0).getDate(), td=todayStr();
+  const pre=`${calYear}-${String(calMonth+1).padStart(2,'0')}-`;
+  const dwo=new Set(orders.filter(o=>o.date&&o.date.startsWith(pre)).map(o=>parseInt(o.date.split('-')[2])));
+  el.innerHTML=`
+    <div class="cal-nav">
+      <button class="cal-arrow" onclick="calMove(-1,'${calId}','${lblId}','${sumId}','${listId}')">‹</button>
+      <span class="cal-month">${MONTHS[calMonth]} ${calYear}</span>
+      <button class="cal-arrow" onclick="calMove(1,'${calId}','${lblId}','${sumId}','${listId}')">›</button>
+    </div>
+    <div class="cal-grid">
+      ${DOWS.map(d=>`<div class="cal-dow">${d}</div>`).join('')}
+      ${Array(offset).fill('<div class="cal-day empty-day"></div>').join('')}
+      ${Array.from({length:dim},(_,k)=>{
+        const d=k+1,ds=`${pre}${String(d).padStart(2,'0')}`;
+        const cls=['cal-day',ds===td?'today':'',ds===selDate?'selected':'',dwo.has(d)?'has-orders':''].filter(Boolean).join(' ');
+        return`<div class="${cls}" onclick="pickDate('${ds}','${calId}','${lblId}','${sumId}','${listId}')">${d}</div>`;
+      }).join('')}
+    </div>`;
+  renderHistList(selDate,lblId,sumId,listId);
+}
+function calMove(dir,a,b,c,d){calMonth+=dir;if(calMonth<0){calMonth=11;calYear--;}if(calMonth>11){calMonth=0;calYear++;}buildCal(a,b,c,d);}
+function pickDate(ds,a,b,c,d){selDate=ds;const[y,m]=ds.split('-');calYear=+y;calMonth=+m-1;buildCal(a,b,c,d);}
+
+function renderHistList(ds,lblId,sumId,listId) {
+  const dayOrders=orders.filter(o=>o.date===ds);
+  const [y,m,d]=ds.split('-'), dt=new Date(+y,+m-1,+d);
+  document.getElementById(lblId).textContent=ds===todayStr()?'Hoy':dt.toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long'});
+  const tot=dayOrders.reduce((a,o)=>a+o.total,0);
+  document.getElementById(sumId).textContent=dayOrders.length?`${dayOrders.length} pedido${dayOrders.length>1?'s':''} · ${fmt(tot)}`:'';
+  const SC={pending:'s-pending',ready:'s-ready',paid:'s-paid'};
+  const SL={pending:'En prep.',ready:'Listo',paid:'Cobrado'};
+  document.getElementById(listId).innerHTML=!dayOrders.length
+    ?'<div class="hist-empty">Sin pedidos este día</div>'
+    :dayOrders.map(o=>`
+      <div class="hist-card">
+        <div class="hc-head"><span class="hc-id">${o.id}</span><span class="hc-time">${o.time}</span>
+        ${o.source==='cliente'?'<span style="font-size:.65rem;background:var(--accent-l);color:var(--accent-d);padding:1px 7px;border-radius:50px;font-weight:600">📱 Cliente</span>':''}
+        </div>
+        ${o.note?`<div class="hc-items" style="font-style:italic">📝 ${o.note}</div>`:''}
+        <div class="hc-items">${o.items.map(it=>`${it.qty}× ${it.name}`).join(', ')}</div>
+        <div class="hc-foot"><span class="hc-total">${fmt(o.total)}</span><span class="status-badge ${SC[o.status]}">${SL[o.status]}</span></div>
+      </div>`).join('');
+}
+
+function initHist(calId,lblId,sumId,listId){calYear=new Date().getFullYear();calMonth=new Date().getMonth();selDate=todayStr();buildCal(calId,lblId,sumId,listId);}
+function rebuildHist(){
+  if(isDesk()&&deskView==='history') buildCal('desk-cal-wrap','desk-day-lbl','desk-day-sum','desk-hist-list');
+  if(!isDesk()&&mobView==='history') buildCal('mob-cal-wrap','mob-day-lbl','mob-day-sum','mob-hist-list');
+}
+
+// ══════════════════════════════════════
+//  VIEW SWITCHING
+// ══════════════════════════════════════
+function deskSwitch(view) {
+  deskView=view;
+  document.getElementById('view-menu').style.display=view==='menu'?'flex':'none';
+  document.getElementById('view-history').style.display='none';
+  document.getElementById('desk-order-panel').style.display=view==='menu'?'flex':'none';
+  document.getElementById('desk-orders-panel').style.display=view==='orders'?'flex':'none';
+  document.getElementById('desk-history-panel').style.display=view==='history'?'flex':'none';
+  ['menu','orders','history'].forEach(v=>document.getElementById('dnav-'+v).classList.toggle('active',v===view));
+  if(view==='orders') buildOrdersList('desk-orders-list');
+  if(view==='history') initHist('desk-cal-wrap','desk-day-lbl','desk-day-sum','desk-hist-list');
+}
+function mobSwitch(view) {
+  mobView=view;
+  document.getElementById('view-menu').style.display=view==='menu'?'flex':'none';
+  document.getElementById('view-orders').style.display=view==='orders'?'flex':'none';
+  document.getElementById('view-history').style.display=view==='history'?'flex':'none';
+  ['menu','orders','history'].forEach(v=>document.getElementById('tab-'+v).classList.toggle('active',v===view));
+  if(view==='orders') buildOrdersList('mob-orders-list');
+  if(view==='history') initHist('mob-cal-wrap','mob-day-lbl','mob-day-sum','mob-hist-list');
+}
+
+// ══════════════════════════════════════
+//  NOTE MODAL & UTILS
+// ══════════════════════════════════════
+function openNoteModal(idx){noteTargetIdx=idx;document.getElementById('note-modal-input').value=cart[idx].note||'';openModal('modal-note');}
+function saveNote(){if(noteTargetIdx!==null){cart[noteTargetIdx].note=document.getElementById('note-modal-input').value;renderCart();}closeModal('modal-note');noteTargetIdx=null;}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)closeModal(o.id);});});
+function setLoading(on){document.getElementById('loading-bar').classList.toggle('active',on);}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// Sync menu
+setInterval(()=>{const nm=getMenu();if(JSON.stringify(nm)!==JSON.stringify(menu)){menu=nm;renderCats();renderProducts();}},5000);
+</script>
+</body>
+</html>
