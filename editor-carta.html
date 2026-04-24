@@ -36,7 +36,7 @@ h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400}
 @keyframes load-anim{0%{transform:scaleX(0) translateX(0)}50%{transform:scaleX(.6) translateX(60%)}100%{transform:scaleX(0) translateX(200%)}}
 
 /* APP */
-.app{max-width:700px;margin:0 auto;padding:1.5rem 1rem 3rem}
+.app{max-width:900px;margin:0 auto;padding:1.5rem 1rem 3rem}
 .header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.5rem;gap:1rem;flex-wrap:wrap}
 .header-title{font-family:'DM Serif Display',serif;font-size:1.9rem;margin-bottom:.2rem}
 .header-sub{font-size:.83rem;color:var(--text2)}
@@ -130,12 +130,12 @@ textarea.form-input{resize:none;min-height:70px}
 
 /* CATEGORY ORDER */
 .cat-order-list{display:flex;flex-direction:column;gap:6px;margin-top:.5rem}
-.cat-order-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--border2);border-radius:var(--rsm);cursor:grab;transition:all .15s;-webkit-user-select:none;user-select:none}
+.cat-order-item{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--surface);border:1.5px solid var(--border2);border-radius:var(--r);cursor:grab;transition:all .15s;-webkit-user-select:none;user-select:none}
 .cat-order-item:active{cursor:grabbing}
 .cat-order-item.dragging{opacity:.4;background:var(--accent-l);border-color:var(--accent)}
 .cat-order-item.drag-over{border-color:var(--accent);background:var(--accent-l);transform:scale(1.01)}
-.cat-drag-handle{color:var(--text3);font-size:1rem;flex-shrink:0;cursor:grab}
-.cat-order-name{flex:1;font-size:.88rem;font-weight:500}
+.cat-drag-handle{color:var(--text3);font-size:1.2rem;flex-shrink:0;cursor:grab;letter-spacing:-2px}
+.cat-order-name{flex:1;font-size:.92rem;font-weight:500}
 .cat-order-count{font-size:.72rem;color:var(--text2);background:var(--surface2);padding:2px 8px;border-radius:50px}
 </style>
 </head>
@@ -205,9 +205,17 @@ textarea.form-input{resize:none;min-height:70px}
 
   <!-- CATEGORY ORDER -->
   <div class="card" id="cat-order-card">
-    <div class="card-title">🗂 Orden de categorías <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text3);font-size:.75rem;margin-left:4px">— arrastra para reordenar</span></div>
-    <div class="cat-order-list" id="cat-order-list"></div>
-    <button class="btn btn-accent" style="margin-top:1rem" onclick="saveCatOrder()">💾 Guardar orden</button>
+    <div class="card-title" style="margin-bottom:0">
+      🗂 Orden de categorías
+    </div>
+    <p style="font-size:.8rem;color:var(--text2);margin:.5rem 0 1rem">Arrastra las categorías para cambiar el orden en que aparecen en la carta y el TPV. Pulsa Guardar cuando termines.</p>
+    <div class="cat-order-list" id="cat-order-list">
+      <div style="text-align:center;padding:1.5rem;color:var(--text3);font-size:.83rem">Cargando categorías...</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:1.25rem;align-items:center">
+      <button class="btn btn-accent" onclick="saveCatOrder()" style="flex:1;justify-content:center">💾 Guardar orden</button>
+      <span id="cat-order-saved" style="font-size:.78rem;color:var(--ok);display:none">✓ Guardado</span>
+    </div>
   </div>
 
   <!-- PRODUCTS -->
@@ -218,7 +226,7 @@ textarea.form-input{resize:none;min-height:70px}
     </div>
     <div style="overflow-x:auto">
       <table class="products-table">
-        <thead><tr><th>Foto</th><th>Nombre / Descripción</th><th>Categoría</th><th>Precio</th><th></th></tr></thead>
+        <thead><tr><th style='width:52px'>Foto</th><th>Nombre</th><th>Descripción</th><th>Categoría</th><th>Precio</th><th style='width:80px'></th></tr></thead>
         <tbody id="products-tbody"></tbody>
       </table>
     </div>
@@ -405,14 +413,23 @@ function renderTable() {
   const filtered = menu.filter(p=>!q||p.name.toLowerCase().includes(q)||p.cat.toLowerCase().includes(q));
   document.getElementById('empty-table').style.display = filtered.length===0?'block':'none';
   document.getElementById('products-tbody').innerHTML = filtered.map(p=>`
-    <tr style="${p.available===false?'opacity:.5':''}">
-      <td><div class="product-thumb" onclick="openEditProduct('${p.id}')">
-        ${p.img?`<img src="${p.img}" onerror="this.style.display='none'">`:'<span style="font-size:.9rem;color:var(--text3)">📷</span>'}
-      </div></td>
+    <tr style="${p.available===false?'opacity:.55':''}">
       <td>
-        <span class="editable" contenteditable="true" onblur="inlineUpdate('${p.id}','name',this.textContent.trim())">${p.name}</span>
-        ${p.desc?`<div style="font-size:.72rem;color:var(--text2);margin-top:2px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.desc}</div>`:''}
-        ${p.available===false?'<span style="font-size:.65rem;background:var(--err-bg);color:var(--err);padding:1px 7px;border-radius:50px;margin-top:2px;display:inline-block">No disponible</span>':''}
+        <div class="product-thumb" onclick="openEditProduct('${p.id}')" title="Editar">
+          ${p.img?`<img src="${p.img}" onerror="this.style.display='none'">`:
+            '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.3"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>'}
+        </div>
+      </td>
+      <td>
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <span class="editable" contenteditable="true" onblur="inlineUpdate('${p.id}','name',this.textContent.trim())">${p.name}</span>
+          ${p.available===false?'<span style="font-size:.65rem;background:var(--err-bg);color:var(--err);padding:1px 7px;border-radius:50px;display:inline-block;width:fit-content">No disponible</span>':''}
+        </div>
+      </td>
+      <td style="max-width:200px">
+        <span class="editable" contenteditable="true"
+          style="font-size:.78rem;color:var(--text2);display:block;white-space:normal;line-height:1.4"
+          onblur="inlineUpdate('${p.id}','desc',this.textContent.trim())">${p.desc||''}</span>
       </td>
       <td><span class="cat-badge editable" contenteditable="true" onblur="inlineUpdate('${p.id}','cat',this.textContent.trim())">${p.cat}</span></td>
       <td class="price-cell"><span class="editable" contenteditable="true" onblur="inlineUpdatePrice('${p.id}',this.textContent.trim())">${p.price.toFixed(2)}</span> €</td>
@@ -661,7 +678,9 @@ async function saveCatOrder() {
   setLoading(true);
   try {
     await db.ref('catOrder').set(cats);
-    showToast('✓ Orden de categorías guardado');
+    showToast('✓ Orden guardado');
+    const savedEl = document.getElementById('cat-order-saved');
+    if(savedEl){ savedEl.style.display='inline'; setTimeout(()=>savedEl.style.display='none', 2500); }
   } catch(e) { showToast('⚠ Error: ' + e.message); }
   setLoading(false);
 }
