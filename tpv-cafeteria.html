@@ -208,6 +208,8 @@ h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400}
 .btn-ocb:active{transform:scale(.95)}
 .btn-ocb.delete{background:var(--err-bg);color:var(--err);padding:8px 12px}
 .btn-ocb.print{background:var(--surface2);color:var(--text2);padding:8px 12px}
+.btn-ocb.undo{background:var(--surface2);color:var(--text2);padding:8px 12px;font-size:.78rem}
+.btn-ocb.undo:hover{background:var(--warn-bg);color:var(--warn)}
 .btn-ocb.print:hover{background:var(--border2);color:var(--text)}
 .orders-empty-big{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;color:var(--text3);text-align:center;padding:3rem}
 .orders-empty-big .icon{font-size:4rem;margin-bottom:1rem;opacity:.25}
@@ -666,7 +668,10 @@ textarea.form-input{resize:none;min-height:76px;margin-bottom:0}
     <div class="cobro-reason-wrap">
       <input class="note-input" id="cobro-reason" placeholder="Motivo (opcional): descuento, invitación, promoción..." style="margin-top:0">
     </div>
-    <button class="cobro-btn" onclick="confirmCobro()">✓ Confirmar cobro</button>
+    <div style="display:flex;gap:8px;margin-bottom:0">
+      <button class="cobro-btn" onclick="confirmCobro(false)" style="flex:1;font-size:.9rem">✓ Confirmar</button>
+      <button class="cobro-btn" onclick="confirmCobro(true)" style="flex:1.6;font-size:.9rem;background:var(--text)">🖨 Confirmar e imprimir</button>
+    </div>
     <button class="cobro-btn-cancel" onclick="closeCobro()">Cancelar</button>
   </div>
 </div>
@@ -1232,6 +1237,7 @@ function buildOrdersBig() {
         <div class="ocb-actions">
           ${o.status==='pending'?`<button class="btn-ocb ready" onclick="setStatus('${o.fbKey}','ready')">✓ Listo</button>`:''}
           ${o.status==='ready'?`<button class="btn-ocb paid" onclick="openCobro('${o.fbKey}')">💳 Cobrar</button>`:''}
+          ${o.status==='ready'?`<button class="btn-ocb undo" onclick="revertStatus('${o.fbKey}')" title="Volver a preparación">↩</button>`:''}
           <button class="btn-ocb print" onclick="printOrder('${o.fbKey}')" title="Imprimir ticket">🖨</button>
           <button class="btn-ocb delete" onclick="deleteOrder('${o.fbKey}')" title="Eliminar pedido">🗑</button>
         </div>
@@ -1296,6 +1302,7 @@ function buildOrdersMob() {
           <div class="oc-actions">
             ${o.status==='pending'?`<button class="btn-sm ok" onclick="setStatus('${o.fbKey}','ready')">Listo ✓</button>`:''}
             ${o.status==='ready'?`<button class="btn-sm ok" onclick="openCobro('${o.fbKey}')">💳 Cobrar</button>`:''}
+            ${o.status==='ready'?`<button class="btn-sm" onclick="revertStatus('${o.fbKey}')" title="Volver a preparación">↩</button>`:''}
             <button class="btn-sm" onclick="printOrder('${o.fbKey}')" title="Imprimir">🖨</button>
             <button class="btn-sm" onclick="deleteOrder('${o.fbKey}')" style="color:var(--err)">🗑</button>
           </div>
@@ -1367,7 +1374,7 @@ function closeCobro() {
   cobroFbKey = null;
 }
 
-async function confirmCobro() {
+async function confirmCobro(andPrint = false) {
   if (!cobroFbKey) return;
   const amountPaid = parseFloat(document.getElementById('cobro-amount').value);
   if (isNaN(amountPaid) || amountPaid < 0) {
@@ -1389,12 +1396,17 @@ async function confirmCobro() {
     await db.ref('orders/' + cobroFbKey).update(updates);
     const o = orders.find(x => x.fbKey === cobroFbKey);
     if (o) Object.assign(o, updates);
+    const savedKey = cobroFbKey;
     closeCobro();
     updateBadge();
     if (isDesk()) buildOrdersBig(); else buildOrdersMob();
     if (isInvited) showToast('🎁 Pedido invitado');
     else if (hasDiscount) showToast('✓ Cobrado con descuento · ' + fmt(amountPaid));
     else showToast('✓ Cobrado · ' + fmt(amountPaid));
+    if (andPrint) {
+      // Small delay so Firebase updates propagate before printing
+      setTimeout(() => printOrder(savedKey), 400);
+    }
   } catch(e) { showToast('⚠ Error: ' + e.message); }
 }
 
@@ -1404,6 +1416,48 @@ function setStatus(fbKey,status) {
   updateBadge();
   if(isDesk()) buildOrdersBig(); else buildOrdersMob();
   showToast(status==='ready'?'✓ Pedido listo':'✓ Cobrado');
+}
+
+// ── Revert to previous status ──
+const PREV_STATUS = { ready: 'pending', paid: 'ready' };
+const PREV_LABEL  = { ready: 'En preparación', paid: 'Listo' };
+
+async function revertStatus(fbKey) {
+  const o = orders.find(x => x.fbKey === fbKey);
+  if (!o) return;
+  const prevStatus = PREV_STATUS[o.status];
+  if (!prevStatus) return;
+  const confirmMsg = o.status === 'paid'
+    ? `¿Reabrir el pedido ${o.id}? Volverá a estado "Listo" y saldrá del histórico.`
+    : `¿Devolver el pedido ${o.id} a "En preparación"?`;
+  if (!confirm(confirmMsg)) return;
+
+  // Clear payment fields if reverting from paid
+  const updates = {
+    status: prevStatus,
+    ...(o.status === 'paid' ? {
+      amountPaid:     null,
+      hasDiscount:    null,
+      isInvited:      null,
+      discountReason: null,
+    } : {})
+  };
+
+  try {
+    await db.ref('orders/' + fbKey).update(updates);
+    Object.assign(o, updates);
+    updateBadge();
+    // If reverting from history (paid→ready), switch to orders view
+    if (o.status === 'ready') {
+      showToast(`↩ Pedido ${o.id} reabierto — ahora en "Listo"`);
+      if (isDesk()) { deskSwitch('orders'); }
+      else          { mobSwitch('orders'); }
+    } else {
+      showToast(`↩ Devuelto a "${PREV_LABEL[prevStatus]}"`);
+      if (isDesk()) buildOrdersBig(); else buildOrdersMob();
+    }
+    rebuildHist();
+  } catch(e) { showToast('⚠ Error: ' + e.message); }
 }
 
 function deleteOrder(fbKey) {
@@ -1529,6 +1583,7 @@ function renderHistList(ds,lblId,sumId,listId) {
           }
           ${o.discountReason ? `<span style="font-size:.68rem;color:var(--text2);font-style:italic">${o.discountReason}</span>` : ''}
           <div class="ocb-actions">
+            <button class="btn-ocb undo" onclick="revertStatus('${o.fbKey}')" title="Reabrir pedido">↩ Reabrir</button>
             <button class="btn-ocb print" onclick="printOrder('${o.fbKey}')" title="Imprimir ticket">🖨</button>
             <button class="btn-ocb delete" onclick="deleteOrder('${o.fbKey}')" title="Eliminar">🗑</button>
           </div>
