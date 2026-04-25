@@ -441,8 +441,14 @@ function renderCats() {
 function selectCat(c) { selCat=c; renderCats(); renderProducts(); }
 
 function renderProducts() {
-  const list = (selCat === 'Todos' ? menu : menu.filter(p => p.cat === selCat))
-    .filter(p => p.available !== false);
+  // Sort by catOrder, then by product order field within each category
+  const sorted = [...menu].filter(p => p.available !== false).sort((a, b) => {
+    const ai = catOrder.indexOf(a.cat), bi = catOrder.indexOf(b.cat);
+    const catDiff = (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    if (catDiff !== 0) return catDiff;
+    return (a.order ?? 999) - (b.order ?? 999);
+  });
+  const list = selCat === 'Todos' ? sorted : sorted.filter(p => p.cat === selCat);
   document.getElementById('products-list').innerHTML = list.map(p => {
     const qty = (cart.find(i => i.id===p.id)||{qty:0}).qty;
     const imgEl = p.img
