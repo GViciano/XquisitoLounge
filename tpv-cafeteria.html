@@ -1494,7 +1494,7 @@ async function revertStatus(fbKey) {
   } catch(e) { showToast('⚠ Error: ' + e.message); }
 }
 
-function deleteOrder(fbKey) {
+async function deleteOrder(fbKey) {
   const o_del = orders.find(x=>x.fbKey===fbKey);
   const ok = await showConfirm({
     icon: '🗑',
@@ -1810,11 +1810,6 @@ function resolveConfirm(result) {
   document.getElementById('confirm-overlay').classList.remove('open');
   if (_confirmResolve) { _confirmResolve(result); _confirmResolve = null; }
 }
-
-// Close on overlay click
-document.getElementById('confirm-overlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('confirm-overlay')) resolveConfirm(false);
-});
 
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
