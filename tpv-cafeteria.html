@@ -333,6 +333,44 @@ h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400}
 .hpc-name{font-size:.82rem;font-weight:500;line-height:1.3;margin-bottom:.25rem}
 .hpc-total{font-size:.78rem;color:var(--text2);font-weight:500}
 
+/* ── COBRO MODAL ── */
+.cobro-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:700;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(3px)}
+.cobro-overlay.open{opacity:1;pointer-events:all}
+@media(min-width:900px){.cobro-overlay{align-items:center}}
+.cobro-modal{background:var(--surface);border-radius:var(--rlg) var(--rlg) 0 0;padding:2rem 1.5rem 2.5rem;width:100%;max-width:420px;transform:translateY(60px);transition:transform .3s cubic-bezier(.32,.72,0,1);position:relative}
+@media(min-width:900px){.cobro-modal{border-radius:var(--rlg);transform:scale(.95)}}
+.cobro-overlay.open .cobro-modal{transform:translateY(0)}
+@media(min-width:900px){.cobro-overlay.open .cobro-modal{transform:scale(1)}}
+.cobro-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto 1.5rem}
+@media(min-width:900px){.cobro-handle{display:none}}
+.cobro-title{font-family:'DM Serif Display',serif;font-size:1.5rem;margin-bottom:.25rem;text-align:center}
+.cobro-sub{font-size:.83rem;color:var(--text2);text-align:center;margin-bottom:1.5rem}
+.cobro-original{text-align:center;margin-bottom:1.25rem}
+.cobro-original-lbl{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-bottom:3px}
+.cobro-original-val{font-family:'DM Serif Display',serif;font-size:2.2rem;color:var(--text)}
+.cobro-input-wrap{position:relative;margin-bottom:1rem}
+.cobro-input-wrap .currency{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:1.3rem;font-weight:600;color:var(--text2);pointer-events:none}
+.cobro-amount{width:100%;padding:.875rem 1rem .875rem 2.5rem;border:2px solid var(--border2);border-radius:var(--r);font-family:'DM Serif Display',serif;font-size:2rem;color:var(--text);background:var(--surface);outline:none;text-align:right;transition:border-color .15s}
+.cobro-amount:focus{border-color:var(--accent)}
+.cobro-discount-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:1.25rem;min-height:24px}
+.cobro-discount-badge{background:var(--ok-bg);color:var(--ok);font-size:.82rem;font-weight:600;padding:4px 14px;border-radius:50px}
+.cobro-invited-badge{background:var(--accent-l);color:var(--accent-d);font-size:.82rem;font-weight:600;padding:4px 14px;border-radius:50px}
+.cobro-presets{display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap;justify-content:center}
+.cobro-preset{padding:6px 14px;border:1px solid var(--border2);border-radius:50px;background:var(--surface2);font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:500;cursor:pointer;color:var(--text);transition:all .12s}
+.cobro-preset:hover{border-color:var(--accent);color:var(--accent)}
+.cobro-preset:active{transform:scale(.95)}
+.cobro-reason-wrap{margin-bottom:1.25rem}
+.cobro-btn{width:100%;padding:1rem;border:none;border-radius:var(--r);background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;transition:all .15s}
+.cobro-btn:active{background:var(--accent-d);transform:scale(.98)}
+.cobro-btn-cancel{width:100%;padding:.65rem;border:1px solid var(--border2);border-radius:var(--r);background:transparent;font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--text2);cursor:pointer;margin-top:8px}
+/* History discount indicators */
+.disc-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:50px;font-size:.7rem;font-weight:600}
+.disc-badge.descuento{background:var(--ok-bg);color:var(--ok)}
+.disc-badge.invitado{background:var(--accent-l);color:var(--accent-d)}
+.ocb-total-wrap{display:flex;flex-direction:column;gap:2px}
+.ocb-total-original{font-size:.78rem;color:var(--text3);text-decoration:line-through}
+.ocb-total-cobrado{font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--ok)}
+
 /* ── MESA MODAL ── */
 .mesa-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .mesa-modal-overlay.open{opacity:1;pointer-events:all}
@@ -603,6 +641,33 @@ textarea.form-input{resize:none;min-height:76px;margin-bottom:0}
     <div class="notif-total" id="notif-total"></div>
     <button class="notif-btn" onclick="acceptNotif()">✓ Ver pedido</button>
     <button class="notif-dismiss" onclick="dismissNotif()">Cerrar</button>
+  </div>
+</div>
+
+<!-- COBRO MODAL -->
+<div class="cobro-overlay" id="cobro-overlay">
+  <div class="cobro-modal">
+    <div class="cobro-handle"></div>
+    <div class="cobro-title">💳 Cobrar pedido</div>
+    <p class="cobro-sub" id="cobro-sub">Introduce el importe que cobras</p>
+    <div class="cobro-original">
+      <div class="cobro-original-lbl">Importe del pedido</div>
+      <div class="cobro-original-val" id="cobro-original-val">0,00 €</div>
+    </div>
+    <div class="cobro-presets" id="cobro-presets">
+      <!-- generated dynamically -->
+    </div>
+    <div class="cobro-input-wrap">
+      <span class="currency">€</span>
+      <input class="cobro-amount" id="cobro-amount" type="number" step="0.01" min="0"
+        placeholder="0,00" oninput="updateCobroPreview()">
+    </div>
+    <div class="cobro-discount-row" id="cobro-discount-row"></div>
+    <div class="cobro-reason-wrap">
+      <input class="note-input" id="cobro-reason" placeholder="Motivo (opcional): descuento, invitación, promoción..." style="margin-top:0">
+    </div>
+    <button class="cobro-btn" onclick="confirmCobro()">✓ Confirmar cobro</button>
+    <button class="cobro-btn-cancel" onclick="closeCobro()">Cancelar</button>
   </div>
 </div>
 
@@ -1166,7 +1231,7 @@ function buildOrdersBig() {
         <span class="ocb-total">${fmt(o.total)}</span>
         <div class="ocb-actions">
           ${o.status==='pending'?`<button class="btn-ocb ready" onclick="setStatus('${o.fbKey}','ready')">✓ Listo</button>`:''}
-          ${o.status==='ready'?`<button class="btn-ocb paid" onclick="setStatus('${o.fbKey}','paid')">💳 Cobrado</button>`:''}
+          ${o.status==='ready'?`<button class="btn-ocb paid" onclick="openCobro('${o.fbKey}')">💳 Cobrar</button>`:''}
           <button class="btn-ocb print" onclick="printOrder('${o.fbKey}')" title="Imprimir ticket">🖨</button>
           <button class="btn-ocb delete" onclick="deleteOrder('${o.fbKey}')" title="Eliminar pedido">🗑</button>
         </div>
@@ -1230,7 +1295,7 @@ function buildOrdersMob() {
           <span style="font-family:'DM Serif Display',serif;font-size:1.3rem">${fmt(o.total)}</span>
           <div class="oc-actions">
             ${o.status==='pending'?`<button class="btn-sm ok" onclick="setStatus('${o.fbKey}','ready')">Listo ✓</button>`:''}
-            ${o.status==='ready'?`<button class="btn-sm ok" onclick="setStatus('${o.fbKey}','paid')">Cobrado ✓</button>`:''}
+            ${o.status==='ready'?`<button class="btn-sm ok" onclick="openCobro('${o.fbKey}')">💳 Cobrar</button>`:''}
             <button class="btn-sm" onclick="printOrder('${o.fbKey}')" title="Imprimir">🖨</button>
             <button class="btn-sm" onclick="deleteOrder('${o.fbKey}')" style="color:var(--err)">🗑</button>
           </div>
@@ -1238,6 +1303,99 @@ function buildOrdersMob() {
       </div>
     </div>`;
   }).join('');
+}
+
+// ══════════════════════════════════════
+//  COBRO CON DESCUENTO
+// ══════════════════════════════════════
+let cobroFbKey = null;
+let cobroOriginal = 0;
+
+function openCobro(fbKey) {
+  const o = orders.find(x => x.fbKey === fbKey);
+  if (!o) return;
+  cobroFbKey = fbKey;
+  cobroOriginal = o.total;
+
+  // Reset modal
+  document.getElementById('cobro-original-val').textContent = fmt(o.total);
+  document.getElementById('cobro-amount').value = o.total.toFixed(2);
+  document.getElementById('cobro-reason').value = '';
+  document.getElementById('cobro-discount-row').innerHTML = '';
+  document.getElementById('cobro-sub').textContent = 'Introduce el importe que cobras';
+
+  // Generate preset buttons: exact, round down, 50%, 0€ (invitación)
+  const total = o.total;
+  const round = Math.floor(total);
+  const presets = [
+    { label: fmt(total) + ' (exacto)', val: total },
+    ...(round !== total && round > 0 ? [{ label: fmt(round) + ' (redondeo)', val: round }] : []),
+    { label: '50% · ' + fmt(total * 0.5), val: parseFloat((total * 0.5).toFixed(2)) },
+    { label: '🎁 Invitación (0 €)', val: 0 },
+  ];
+  document.getElementById('cobro-presets').innerHTML = presets.map(p =>
+    `<button class="cobro-preset" onclick="setCobroAmount(${p.val})">${p.label}</button>`
+  ).join('');
+
+  document.getElementById('cobro-overlay').classList.add('open');
+  setTimeout(() => document.getElementById('cobro-amount').focus(), 300);
+}
+
+function setCobroAmount(val) {
+  document.getElementById('cobro-amount').value = val.toFixed(2);
+  updateCobroPreview();
+}
+
+function updateCobroPreview() {
+  const val = parseFloat(document.getElementById('cobro-amount').value) || 0;
+  const diff = val - cobroOriginal;
+  const row = document.getElementById('cobro-discount-row');
+  if (Math.abs(diff) < 0.01) {
+    row.innerHTML = '';
+  } else if (val === 0) {
+    row.innerHTML = '<span class="cobro-invited-badge">🎁 Invitación completa</span>';
+  } else if (diff < 0) {
+    const pct = Math.round(Math.abs(diff) / cobroOriginal * 100);
+    row.innerHTML = `<span class="cobro-discount-badge">▼ Descuento de ${fmt(Math.abs(diff))} (${pct}%)</span>`;
+  } else {
+    row.innerHTML = `<span style="font-size:.8rem;color:var(--text2)">+ ${fmt(diff)} sobre el total</span>`;
+  }
+}
+
+function closeCobro() {
+  document.getElementById('cobro-overlay').classList.remove('open');
+  cobroFbKey = null;
+}
+
+async function confirmCobro() {
+  if (!cobroFbKey) return;
+  const amountPaid = parseFloat(document.getElementById('cobro-amount').value);
+  if (isNaN(amountPaid) || amountPaid < 0) {
+    showToast('⚠ Introduce un importe válido'); return;
+  }
+  const reason = document.getElementById('cobro-reason').value.trim();
+  const hasDiscount = Math.abs(amountPaid - cobroOriginal) >= 0.01;
+  const isInvited = amountPaid < 0.01;
+
+  const updates = {
+    status: 'paid',
+    amountPaid,
+    discountReason: reason || (isInvited ? 'Invitación' : hasDiscount ? 'Descuento' : ''),
+    hasDiscount,
+    isInvited,
+  };
+
+  try {
+    await db.ref('orders/' + cobroFbKey).update(updates);
+    const o = orders.find(x => x.fbKey === cobroFbKey);
+    if (o) Object.assign(o, updates);
+    closeCobro();
+    updateBadge();
+    if (isDesk()) buildOrdersBig(); else buildOrdersMob();
+    if (isInvited) showToast('🎁 Pedido invitado');
+    else if (hasDiscount) showToast('✓ Cobrado con descuento · ' + fmt(amountPaid));
+    else showToast('✓ Cobrado · ' + fmt(amountPaid));
+  } catch(e) { showToast('⚠ Error: ' + e.message); }
 }
 
 function setStatus(fbKey,status) {
@@ -1310,7 +1468,7 @@ function renderHistList(ds,lblId,sumId,listId) {
   if(lblEl) lblEl.textContent = isToday ? 'Hoy' : dt.toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long'});
 
   // Summary
-  const tot = dayOrders.reduce((a,o)=>a+o.total,0);
+  const tot = dayOrders.reduce((a,o)=>a+(o.amountPaid??o.total),0); // use actual paid amount
   const sumEl = document.getElementById(sumId);
   if(sumEl) sumEl.textContent = dayOrders.length ? `${dayOrders.length} cobrado${dayOrders.length>1?'s':''} · ${fmt(tot)}` : '';
 
@@ -1355,10 +1513,25 @@ function renderHistList(ds,lblId,sumId,listId) {
           </div>`).join('')}
       </div>
       <div class="ocb-footer">
-        <span class="ocb-total">${fmt(o.total)}</span>
-        <div class="ocb-actions">
-          <button class="btn-ocb print" onclick="printOrder('${o.fbKey}')" title="Imprimir ticket">🖨</button>
-          <button class="btn-ocb delete" onclick="deleteOrder('${o.fbKey}')" title="Eliminar">🗑</button>
+        <div class="ocb-total-wrap">
+          ${o.hasDiscount || o.isInvited
+            ? `<span class="ocb-total-original">${fmt(o.total)}</span>
+               <span class="ocb-total-cobrado">${o.isInvited ? '🎁 Invitado' : fmt(o.amountPaid)}</span>`
+            : `<span class="ocb-total">${fmt(o.amountPaid ?? o.total)}</span>`
+          }
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+          ${o.isInvited
+            ? '<span class="disc-badge invitado">🎁 Invitación</span>'
+            : o.hasDiscount
+              ? `<span class="disc-badge descuento">▼ ${Math.round((1-(o.amountPaid/o.total))*100)}% dto</span>`
+              : ''
+          }
+          ${o.discountReason ? `<span style="font-size:.68rem;color:var(--text2);font-style:italic">${o.discountReason}</span>` : ''}
+          <div class="ocb-actions">
+            <button class="btn-ocb print" onclick="printOrder('${o.fbKey}')" title="Imprimir ticket">🖨</button>
+            <button class="btn-ocb delete" onclick="deleteOrder('${o.fbKey}')" title="Eliminar">🗑</button>
+          </div>
         </div>
       </div>
     </div>`;
@@ -1463,10 +1636,22 @@ function printOrder(fbKey) {
         <tbody>${itemsHTML}</tbody>
       </table>
       <hr class="ticket-divider">
-      <div class="ticket-total-row">
-        <span class="ticket-total-lbl">TOTAL</span>
-        <span class="ticket-total-val">${fmt(o.total)}</span>
-      </div>
+      ${o.hasDiscount || o.isInvited ? `
+        <div class="ticket-total-row" style="opacity:.5;font-size:.9em">
+          <span>Subtotal</span>
+          <span style="text-decoration:line-through">${fmt(o.total)}</span>
+        </div>
+        <div class="ticket-total-row">
+          <span class="ticket-total-lbl">${o.isInvited ? 'INVITACIÓN' : 'DESCUENTO'}</span>
+          <span class="ticket-total-val">${o.isInvited ? '0,00 €' : fmt(o.amountPaid)}</span>
+        </div>
+        ${o.discountReason ? `<div style="text-align:right;font-size:.85em;font-style:italic">${o.discountReason}</div>` : ''}
+      ` : `
+        <div class="ticket-total-row">
+          <span class="ticket-total-lbl">TOTAL</span>
+          <span class="ticket-total-val">${fmt(o.amountPaid ?? o.total)}</span>
+        </div>
+      `}
       <hr class="ticket-divider">
       <div class="ticket-footer">¡Gracias por su visita!</div>
       <div class="ticket-order-id">${o.id}</div>
@@ -1500,6 +1685,11 @@ function toggleMobCard(id) {
 // ══════════════════════════════════════
 function openNoteModal(idx){noteTargetIdx=idx;document.getElementById('note-modal-input').value=cart[idx].note||'';openModal('modal-note');}
 function saveNote(){if(noteTargetIdx!==null){cart[noteTargetIdx].note=document.getElementById('note-modal-input').value;renderCart();}closeModal('modal-note');noteTargetIdx=null;}
+// Close cobro on overlay click
+document.getElementById('cobro-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('cobro-overlay')) closeCobro();
+});
+
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)closeModal(o.id);});});
