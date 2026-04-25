@@ -427,6 +427,10 @@ textarea.form-input{resize:none;min-height:76px;margin-bottom:0}
         <div class="fb-dot" id="fb-dot-desk"></div>
         <span class="fb-lbl" id="fb-lbl-desk">Conectando...</span>
       </div>
+      <div class="fb-status" style="margin-top:4px" title="IP registrada del local (usada para validar pedidos)">
+        <span style="font-size:.65rem;color:rgba(255,255,255,.3)">🔒 IP:</span>
+        <span class="fb-lbl" id="desk-local-ip" style="font-family:monospace;font-size:.65rem">...</span>
+      </div>
       <div class="user-row">
         <span class="user-email" id="desk-user-email"></span>
       </div>
@@ -718,6 +722,8 @@ function showLoginError(msg) {
 
 async function doLogout() {
   if (!confirm('¿Cerrar sesión?')) return;
+  // Remove local IP so orders are blocked when TPV is closed
+  try { await db.ref('config/localIp').remove(); } catch(e){}
   await auth.signOut();
   orders = []; knownOrderIds = new Set();
 }
@@ -731,7 +737,36 @@ function initMain() {
   listenMenu();
   listenOrders();
   listenCatOrder();
+  registerLocalIp();
 }
+
+// ══════════════════════════════════════
+//  IP REGISTRATION — anti-fraud
+// ══════════════════════════════════════
+async function registerLocalIp() {
+  try {
+    const res  = await fetch('https://api.ipify.org?format=json');
+    const data = await res.json();
+    const ip   = data.ip;
+    // Save to Firebase so carta-cliente can validate
+    await db.ref('config/localIp').set({
+      ip,
+      registeredAt: firebase.database.ServerValue.TIMESTAMP,
+      registeredBy: currentUser ? currentUser.email : 'unknown'
+    });
+    // Show in UI
+    const el = document.getElementById('desk-local-ip');
+    if (el) el.textContent = ip;
+    console.log('Local IP registered:', ip);
+  } catch(e) {
+    console.warn('Could not register IP:', e.message);
+    // If IP service fails, clear localIp so clients aren't blocked
+    await db.ref('config/localIp').remove().catch(()=>{});
+  }
+}
+
+// Re-register IP every 10 minutes in case it changes
+setInterval(registerLocalIp, 10 * 60 * 1000);
 
 function setStatus(online) {
   document.getElementById('fb-dot-desk').className = 'fb-dot ' + (online?'online':'offline');

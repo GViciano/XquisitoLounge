@@ -134,9 +134,29 @@ textarea.form-input{resize:none;min-height:68px;margin-bottom:0}
 <div id="splash">
   <div class="splash-logo">☕</div>
   <div class="splash-name">Xquisito Lounge</div>
-  <div class="splash-sub">Cargando carta...</div>
+  <div class="splash-sub" id="splash-sub">Verificando conexión...</div>
   <div class="splash-spinner"></div>
   <div class="splash-error" id="splash-error"></div>
+</div>
+
+<!-- IP BLOCKED SCREEN -->
+<div id="ip-blocked" style="display:none;position:fixed;inset:0;background:var(--text);z-index:500;
+  display:none;flex-direction:column;align-items:center;justify-content:center;padding:2rem;text-align:center">
+  <div style="font-size:3.5rem;margin-bottom:1.25rem">📶</div>
+  <div style="font-family:'DM Serif Display',serif;font-size:1.75rem;color:#fff;margin-bottom:.75rem">Conéctate al WiFi del local</div>
+  <div style="font-size:.9rem;color:rgba(255,255,255,.55);line-height:1.7;max-width:300px;margin-bottom:2rem">
+    Para hacer un pedido debes estar conectado a la red WiFi de <strong style="color:rgba(255,255,255,.8)">Xquisito Lounge</strong>.
+    <br><br>
+    Puedes seguir viendo la carta, pero no podrás realizar pedidos desde fuera del local.
+  </div>
+  <button onclick="checkIpAndContinue()" style="padding:12px 28px;border:1.5px solid rgba(255,255,255,.25);border-radius:50px;
+    background:transparent;color:#fff;font-family:'DM Sans',sans-serif;font-size:.92rem;cursor:pointer;margin-bottom:12px">
+    🔄 Reintentar
+  </button>
+  <button onclick="continueReadOnly()" style="padding:10px 24px;border:none;background:transparent;
+    color:rgba(255,255,255,.4);font-family:'DM Sans',sans-serif;font-size:.82rem;cursor:pointer">
+    Ver carta sin pedir →
+  </button>
 </div>
 
 <!-- APP -->
@@ -264,12 +284,12 @@ auth.signInWithEmailAndPassword(CLIENTE_EMAIL, CLIENTE_PASSWORD)
     errEl.textContent = 'Error de conexión. Por favor avisa al personal. (' + err.code + ')';
   });
 
+let isReadOnly = false; // true = can view but not order
+
 function onReady() {
-  // Mostrar UI inmediatamente con menú por defecto, luego actualizar desde Firebase
   menu = getDefaultMenu();
-  initUI();
   listenCatOrder();
-  // Escuchar menú en tiempo real (se actualiza al instante si el editor cambia algo)
+  // Listen menu in real time
   db.ref('menu').on('value', snap => {
     if (snap.exists()) {
       const m = [];
@@ -277,10 +297,70 @@ function onReady() {
       if (m.length) { menu = m; renderCats(); renderProducts(); }
     }
   });
+  // Check IP before showing order UI
+  checkIpAndContinue();
 }
 
-function initUI() {
-  // Ocultar splash, mostrar app
+async function checkIpAndContinue() {
+  // Update splash message
+  const subEl = document.getElementById('splash-sub');
+  if(subEl) subEl.textContent = 'Verificando conexión...';
+
+  try {
+    // 1. Get registered local IP from Firebase
+    const snap = await db.ref('config/localIp').once('value');
+
+    if (!snap.exists()) {
+      // No IP registered = TPV not open = show read-only
+      console.log('No local IP registered (TPV offline) → read-only');
+      continueReadOnly();
+      return;
+    }
+
+    const localIp = snap.val().ip;
+
+    // 2. Get client's current IP
+    const res     = await fetch('https://api.ipify.org?format=json');
+    const data    = await res.json();
+    const clientIp = data.ip;
+
+    console.log('Local IP:', localIp, '| Client IP:', clientIp);
+
+    if (clientIp === localIp) {
+      // ✅ Same network — full ordering enabled
+      isReadOnly = false;
+      initUI(false);
+    } else {
+      // ❌ Different network — show blocked screen
+      showIpBlocked();
+    }
+
+  } catch(e) {
+    // Network error fetching IP — allow ordering (benefit of the doubt)
+    console.warn('IP check failed, allowing order:', e.message);
+    isReadOnly = false;
+    initUI(false);
+  }
+}
+
+function showIpBlocked() {
+  // Hide splash, show blocked screen, but still load the menu view-only
+  const splash = document.getElementById('splash');
+  splash.classList.add('hide');
+  setTimeout(() => splash.style.display = 'none', 400);
+  document.getElementById('ip-blocked').style.display = 'flex';
+}
+
+function continueReadOnly() {
+  isReadOnly = true;
+  document.getElementById('ip-blocked').style.display = 'none';
+  initUI(true);
+}
+
+function initUI(readOnly = false) {
+  isReadOnly = readOnly;
+
+  // Hide splash, show app
   const splash = document.getElementById('splash');
   splash.classList.add('hide');
   setTimeout(() => splash.style.display = 'none', 400);
@@ -292,6 +372,18 @@ function initUI() {
     document.getElementById('mesa-badge-wrap').style.display = 'block';
     document.getElementById('modal-mesa-badge').textContent = '📍 Mesa ' + mesaParam;
     document.getElementById('mesa-input-wrap').style.display = 'none';
+  }
+
+  // If read-only, show banner and hide cart
+  if (readOnly) {
+    const banner = document.createElement('div');
+    banner.id = 'readonly-banner';
+    banner.innerHTML = `<div style="background:#1A1814;color:rgba(255,255,255,.7);text-align:center;padding:10px 1rem;font-size:.8rem;position:sticky;top:0;z-index:60">
+      📶 Conéctate al WiFi del local para hacer pedidos &nbsp;
+      <button onclick="checkIpAndContinue()" style="background:rgba(255,255,255,.15);border:none;color:#fff;padding:3px 10px;border-radius:50px;font-size:.75rem;cursor:pointer;font-family:inherit">Reintentar</button>
+    </div>`;
+    document.getElementById('app').prepend(banner);
+    document.getElementById('cart-bar').style.display = 'none';
   }
 
   renderCats();
@@ -358,13 +450,13 @@ function renderProducts() {
       : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center">
            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity:.2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
          </div>`;
-    const ctrl = qty === 0
+    const ctrl = isReadOnly ? '' : (qty === 0
       ? `<button class="add-btn" onclick="event.stopPropagation();addToCart('${p.id}')">+</button>`
       : `<div class="qty-mini">
            <button class="qty-btn-m" onclick="event.stopPropagation();chgQty('${p.id}',-1)">−</button>
            <span class="qty-num-m">${qty}</span>
            <button class="qty-btn-m" onclick="event.stopPropagation();chgQty('${p.id}',1)">+</button>
-         </div>`;
+         </div>`);
     return `<div class="product-card${qty>0?' in-cart':''}">
       <div class="product-img-wrap">${imgEl}</div>
       <div class="product-info">
@@ -417,6 +509,10 @@ function renderCartModal() {
 //  ENVIAR PEDIDO → FIREBASE
 // ══════════════════════════════════════
 async function sendOrder() {
+  if (isReadOnly) {
+    showToast('⚠ Conéctate al WiFi del local para pedir');
+    return;
+  }
   if (!cart.length || !db) return;
 
   const mesaInputEl = document.getElementById('mesa-input');
