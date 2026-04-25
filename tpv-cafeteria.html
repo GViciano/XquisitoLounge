@@ -680,7 +680,18 @@ auth.onAuthStateChanged(user => {
     currentUser = null;
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('main-app').style.display = 'none';
+    // Reset button in case it was stuck from a previous attempt
+    const btn = document.getElementById('login-btn');
+    if (btn) { btn.disabled = false; btn.innerHTML = 'Entrar'; }
   }
+}, err => {
+  // Auth state error (e.g. domain not authorized on session restore)
+  console.error('Auth state error:', err);
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('main-app').style.display = 'none';
+  const btn = document.getElementById('login-btn');
+  if (btn) { btn.disabled = false; btn.innerHTML = 'Entrar'; }
+  showLoginError('Error de autenticación (' + err.code + '). Comprueba que este dominio está autorizado en Firebase.');
 });
 
 async function doLogin() {
@@ -696,24 +707,40 @@ async function doLogin() {
   btn.innerHTML = '<div class="spinner"></div> Entrando...';
   errEl.style.display = 'none';
 
+  // Safety timeout — if Firebase hangs for 15s, show error
+  const loginTimeout = setTimeout(() => {
+    if (btn.disabled) {
+      showLoginError('Tiempo de espera agotado. Comprueba tu conexión e inténtalo de nuevo.');
+      btn.disabled = false;
+      btn.innerHTML = 'Entrar';
+    }
+  }, 15000);
+
   try {
-    // Persistencia: LOCAL = recuerda sesión, SESSION = solo esta pestaña
     await auth.setPersistence(
       remember ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.SESSION
     );
     await auth.signInWithEmailAndPassword(email, pass);
-    // onAuthStateChanged se encarga del resto
+    clearTimeout(loginTimeout);
+    // onAuthStateChanged handles the rest
   } catch(e) {
+    clearTimeout(loginTimeout);
     const msgs = {
-      'auth/user-not-found':     'Usuario no encontrado',
-      'auth/wrong-password':     'Contraseña incorrecta',
-      'auth/invalid-email':      'Email no válido',
-      'auth/too-many-requests':  'Demasiados intentos. Espera unos minutos.',
-      'auth/invalid-credential': 'Email o contraseña incorrectos',
+      'auth/user-not-found':       'Usuario no encontrado.',
+      'auth/wrong-password':       'Contraseña incorrecta.',
+      'auth/invalid-email':        'Email no válido.',
+      'auth/too-many-requests':    'Demasiados intentos. Espera unos minutos.',
+      'auth/invalid-credential':   'Email o contraseña incorrectos.',
+      'auth/network-request-failed': '❌ Error de red. Comprueba tu conexión WiFi e inténtalo de nuevo.',
+      'auth/unauthorized-domain':  '❌ Dominio no autorizado. Ve a Firebase → Authentication → Authorized domains y añade este dominio.',
+      'auth/operation-not-allowed': '❌ Login con email no está activado en Firebase.',
     };
-    showLoginError(msgs[e.code] || 'Error: ' + e.message);
+    // Show full error code too so it's easier to debug
+    const msg = msgs[e.code] || `Error (${e.code}): ${e.message}`;
+    showLoginError(msg);
+    console.error('Login error:', e.code, e.message);
     btn.disabled = false;
-    btn.innerHTML = '<span id="login-btn-text">Entrar</span>';
+    btn.innerHTML = 'Entrar';
   }
 }
 
