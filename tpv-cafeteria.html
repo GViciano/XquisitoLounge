@@ -415,6 +415,22 @@ textarea.form-input{resize:none;min-height:76px;margin-bottom:0}
 .loading-bar.active{animation:loading-anim 1.5s ease-in-out infinite}
 @keyframes loading-anim{0%{transform:scaleX(0) translateX(0)}50%{transform:scaleX(.6) translateX(60%)}100%{transform:scaleX(0) translateX(200%)}}
 
+/* ── CONFIRM DIALOG ── */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(3px)}
+.confirm-overlay.open{opacity:1;pointer-events:all}
+.confirm-box{background:var(--surface);border-radius:20px;padding:2rem 1.75rem;width:100%;max-width:360px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.25);transform:scale(.9);transition:transform .22s cubic-bezier(.32,.72,0,1)}
+.confirm-overlay.open .confirm-box{transform:scale(1)}
+.confirm-icon{font-size:2.75rem;margin-bottom:.875rem;line-height:1}
+.confirm-title{font-family:'DM Serif Display',serif;font-size:1.3rem;margin-bottom:.5rem;color:var(--text)}
+.confirm-msg{font-size:.85rem;color:var(--text2);line-height:1.6;margin-bottom:1.5rem}
+.confirm-btns{display:flex;gap:8px}
+.confirm-btn{flex:1;padding:.875rem;border-radius:var(--r);border:none;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .15s}
+.confirm-btn:active{transform:scale(.97)}
+.confirm-btn.ok{background:var(--accent);color:#fff}
+.confirm-btn.ok.danger{background:var(--err)}
+.confirm-btn.ok.warn{background:var(--warn-bg);color:var(--warn)}
+.confirm-btn.cancel{background:var(--surface2);color:var(--text2)}
+
 /* TOAST */
 .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(50px);background:var(--text);color:#fff;padding:9px 18px;border-radius:50px;font-size:.8rem;font-weight:500;z-index:700;transition:all .28s cubic-bezier(.32,.72,0,1);white-space:nowrap;opacity:0}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
@@ -821,8 +837,15 @@ function showLoginError(msg) {
 }
 
 async function doLogout() {
-  if (!confirm('¿Cerrar sesión?')) return;
-  // Remove local IP so orders are blocked when TPV is closed
+  const ok = await showConfirm({
+    icon: '🚪',
+    title: 'Cerrar sesión',
+    msg: 'Al cerrar sesión se desactivará la posibilidad de hacer pedidos desde la carta del cliente.',
+    okText: 'Cerrar sesión',
+    okStyle: 'danger',
+    cancelText: 'Cancelar',
+  });
+  if (!ok) return;
   try { await db.ref('config/localIp').remove(); } catch(e){}
   await auth.signOut();
   orders = []; knownOrderIds = new Set();
@@ -1427,10 +1450,21 @@ async function revertStatus(fbKey) {
   if (!o) return;
   const prevStatus = PREV_STATUS[o.status];
   if (!prevStatus) return;
-  const confirmMsg = o.status === 'paid'
-    ? `¿Reabrir el pedido ${o.id}? Volverá a estado "Listo" y saldrá del histórico.`
-    : `¿Devolver el pedido ${o.id} a "En preparación"?`;
-  if (!confirm(confirmMsg)) return;
+  const isPaid = o.status === 'paid';
+  const ok = await showConfirm(isPaid ? {
+    icon: '↩',
+    title: `Reabrir pedido ${o.id}`,
+    msg: 'El pedido volverá a estado "Listo" y saldrá del histórico. Si tenía descuento o invitación, se eliminará.',
+    okText: 'Sí, reabrir',
+    okStyle: 'warn',
+  } : {
+    icon: '↩',
+    title: `Devolver a preparación`,
+    msg: `El pedido ${o.id} volverá a estado "En preparación".`,
+    okText: 'Sí, devolver',
+    okStyle: 'ok',
+  });
+  if (!ok) return;
 
   // Clear payment fields if reverting from paid
   const updates = {
@@ -1461,7 +1495,15 @@ async function revertStatus(fbKey) {
 }
 
 function deleteOrder(fbKey) {
-  if(!confirm('¿Eliminar este pedido?')) return;
+  const o_del = orders.find(x=>x.fbKey===fbKey);
+  const ok = await showConfirm({
+    icon: '🗑',
+    title: 'Eliminar pedido',
+    msg: `¿Eliminar el pedido ${o_del?.id||''}? Esta acción no se puede deshacer.`,
+    okText: 'Eliminar',
+    okStyle: 'danger',
+  });
+  if (!ok) return;
   db.ref('orders/'+fbKey).remove();
   orders = orders.filter(x=>x.fbKey!==fbKey);
   knownOrderIds.delete(fbKey);
@@ -1745,6 +1787,35 @@ document.getElementById('cobro-overlay').addEventListener('click', e => {
   if (e.target === document.getElementById('cobro-overlay')) closeCobro();
 });
 
+// ══════════════════════════════════════
+//  CUSTOM CONFIRM DIALOG
+// ══════════════════════════════════════
+let _confirmResolve = null;
+
+function showConfirm({ icon='❓', title='¿Confirmar?', msg='', okText='Confirmar', okStyle='ok', cancelText='Cancelar' }) {
+  return new Promise(resolve => {
+    _confirmResolve = resolve;
+    document.getElementById('confirm-icon').textContent  = icon;
+    document.getElementById('confirm-title').textContent = title;
+    document.getElementById('confirm-msg').textContent   = msg;
+    const okBtn = document.getElementById('confirm-ok');
+    okBtn.textContent  = okText;
+    okBtn.className    = 'confirm-btn ok ' + (okStyle || '');
+    document.getElementById('confirm-cancel').textContent = cancelText;
+    document.getElementById('confirm-overlay').classList.add('open');
+  });
+}
+
+function resolveConfirm(result) {
+  document.getElementById('confirm-overlay').classList.remove('open');
+  if (_confirmResolve) { _confirmResolve(result); _confirmResolve = null; }
+}
+
+// Close on overlay click
+document.getElementById('confirm-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('confirm-overlay')) resolveConfirm(false);
+});
+
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(o=>{o.addEventListener('click',e=>{if(e.target===o)closeModal(o.id);});});
@@ -1773,6 +1844,19 @@ async function saveMenuToFB(m) {
   await db.ref('menu').set(obj);
 }
 </script>
+<!-- CONFIRM DIALOG -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirm-icon">❓</div>
+    <div class="confirm-title" id="confirm-title">¿Confirmar?</div>
+    <div class="confirm-msg" id="confirm-msg"></div>
+    <div class="confirm-btns">
+      <button class="confirm-btn cancel" id="confirm-cancel" onclick="resolveConfirm(false)">Cancelar</button>
+      <button class="confirm-btn ok" id="confirm-ok" onclick="resolveConfirm(true)">Confirmar</button>
+    </div>
+  </div>
+</div>
+
 <!-- TICKET PRINT FRAME -->
 <div id="ticket-print-frame"></div>
 
