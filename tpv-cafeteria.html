@@ -1447,10 +1447,7 @@ function selectMesa(mesa) {
 
 // openMesaModal pre-selection handled inside the function itself
 
-// Close mesa modal on overlay click
-document.getElementById('modal-mesa-select').addEventListener('click', e => {
-  if(e.target === document.getElementById('modal-mesa-select')) closeMesaModal();
-});
+// modal-mesa-select listener added via DOMContentLoaded
 
 // ══════════════════════════════════════
 //  CONFIRM ORDER → FIREBASE
@@ -1459,29 +1456,62 @@ async function confirmOrder(mesaVal, noteVal) {
   if(!cart.length||!currentUser) return;
   mesaVal = mesaVal || '';
   noteVal = noteVal || '';
-  // Build structured note string
   const noteStr = [mesaVal ? 'Mesa: '+mesaVal : '', noteVal].filter(Boolean).join(' — ');
-  // Get next correlative number from Firebase
-  let orderNum = 1;
-  try {
-    const snap = await db.ref('orderCounter').transaction(n => (n||0) + 1);
-    if (snap.committed) orderNum = snap.snapshot.val();
-  } catch(e) { console.warn('Counter error:', e); }
-  const order = {
-    id: '#' + String(orderNum).padStart(3,'0'),
-    items: [...cart],
-    note: noteStr,
-    mesa: mesaVal,
-    comment: noteVal,
-    total: cart.reduce((a,i)=>a+i.price*i.qty,0),
-    status: 'pending',
-    date: todayStr(),
-    time: new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}),
-    source: 'tpv',
-    createdBy: currentUser.email
-  };
+
   setLoading(true);
   try {
+    // ── Check if mesa already has an active (non-paid) order ──
+    if (mesaVal) {
+      const existingOrder = orders.find(o =>
+        o.status !== 'paid' &&
+        (o.mesa === mesaVal || getMesa(o.note) === mesaVal)
+      );
+      if (existingOrder) {
+        // Merge cart into existing order
+        const newItems = [...existingOrder.items];
+        cart.forEach(cartItem => {
+          const existing = newItems.find(it => it.id === cartItem.id);
+          if (existing) existing.qty += cartItem.qty;
+          else newItems.push({...cartItem});
+        });
+        const newTotal = newItems.reduce((a,it) => a+it.price*it.qty, 0);
+        await db.ref('orders/'+existingOrder.fbKey).update({
+          items: newItems,
+          total: newTotal,
+          note: noteStr || existingOrder.note,
+        });
+        cart=[];
+        renderCart(); renderProducts();
+        closeMesaModal();
+        mobOrderOpen=false;
+        document.getElementById('mob-exp').classList.remove('open');
+        document.getElementById('mot-chev').classList.remove('open');
+        document.getElementById('mob-summary').style.display='none';
+        showToast(`✓ Productos añadidos a Mesa ${mesaVal} (${existingOrder.id})`);
+        setLoading(false);
+        return;
+      }
+    }
+
+    // ── No existing order — create new ──
+    let orderNum = 1;
+    try {
+      const snap = await db.ref('orderCounter').transaction(n => (n||0) + 1);
+      if (snap.committed) orderNum = snap.snapshot.val();
+    } catch(e) { console.warn('Counter error:', e); }
+    const order = {
+      id: '#' + String(orderNum).padStart(3,'0'),
+      items: [...cart],
+      note: noteStr,
+      mesa: mesaVal,
+      comment: noteVal,
+      total: cart.reduce((a,i)=>a+i.price*i.qty,0),
+      status: 'pending',
+      date: todayStr(),
+      time: new Date().toLocaleTimeString('es',{hour:'2-digit',minute:'2-digit'}),
+      source: 'tpv',
+      createdBy: currentUser.email
+    };
     const ref = db.ref('orders').push();
     await ref.set({...order, fbKey:ref.key, timestamp:firebase.database.ServerValue.TIMESTAMP});
     cart=[];
@@ -2641,11 +2671,18 @@ function renderDashboard() {
   const topProds = Object.values(prodMap).sort((a,b)=>b.qty-a.qty).slice(0,5);
   const maxQty   = topProds.length ? topProds[0].qty : 1;
 
-  // Hourly chart (7am-11pm)
+  // Hourly chart (7am-11pm) — use ALL today orders for activity
   const hourCounts = {};
-  paidToday.forEach(o => {
-    const h = o.time ? parseInt(o.time.split(':')[0]) : null;
-    if(h!==null) hourCounts[h] = (hourCounts[h]||0)+1;
+  todayOrders.forEach(o => {
+    // Try timestamp first (ms), fallback to time string "HH:MM"
+    let h = null;
+    if (o.timestamp) {
+      h = new Date(o.timestamp).getHours();
+    } else if (o.time) {
+      const parts = o.time.split(':');
+      h = parseInt(parts[0]);
+    }
+    if (h !== null && !isNaN(h)) hourCounts[h] = (hourCounts[h]||0)+1;
   });
   const hours = Array.from({length:17},(_,i)=>i+7); // 7..23
   const maxH  = Math.max(...hours.map(h=>hourCounts[h]||0), 1);
@@ -2864,10 +2901,7 @@ async function confirmATO() {
   } catch(e) { showToast('⚠ Error: '+e.message); }
 }
 
-// Close ATO on overlay click
-document.getElementById('ato-overlay').addEventListener('click', e=>{
-  if(e.target===document.getElementById('ato-overlay')) closeATO();
-});
+// ato-overlay listener added via DOMContentLoaded (element is after this script)
 
 // ══════════════════════════════════════
 //  VIEW SWITCHING
@@ -2995,10 +3029,7 @@ function toggleMobCard(id) {
 // ══════════════════════════════════════
 function openNoteModal(idx){noteTargetIdx=idx;document.getElementById('note-modal-input').value=cart[idx].note||'';openModal('modal-note');}
 function saveNote(){if(noteTargetIdx!==null){cart[noteTargetIdx].note=document.getElementById('note-modal-input').value;renderCart();}closeModal('modal-note');noteTargetIdx=null;}
-// Close cobro on overlay click
-document.getElementById('cobro-overlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('cobro-overlay')) closeCobro();
-});
+// cobro-overlay listener added via DOMContentLoaded
 
 // ══════════════════════════════════════
 //  CUSTOM CONFIRM DIALOG
@@ -3046,11 +3077,24 @@ function listenMenu() {
 
 async function saveMenuToFB(m) {
   if (!db || !currentUser) return;
-  // Store as object keyed by id for easy updates
   const obj = {};
   m.forEach(p => { obj[p.id] = p; });
   await db.ref('menu').set(obj);
 }
+
+// ── Wire overlay listeners after DOM is fully parsed ──
+document.addEventListener('DOMContentLoaded', () => {
+  const listeners = [
+    ['ato-overlay',       () => closeATO()],
+    ['modal-mesa-select', () => closeMesaModal()],
+    ['confirm-overlay',   () => resolveConfirm(false)],
+    ['cobro-overlay',     () => closeCobro()],
+  ];
+  listeners.forEach(([id, fn]) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('click', e => { if (e.target === el) fn(); });
+  });
+});
 </script>
 <!-- AÑADIR A PEDIDO MODAL -->
 <div class="add-to-order-overlay" id="ato-overlay">
