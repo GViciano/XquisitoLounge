@@ -443,6 +443,118 @@ textarea.form-input{resize:none;min-height:76px;margin-bottom:0}
 .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(50px);background:var(--text);color:#fff;padding:9px 18px;border-radius:50px;font-size:.8rem;font-weight:500;z-index:700;transition:all .28s cubic-bezier(.32,.72,0,1);white-space:nowrap;opacity:0}
 .toast.show{transform:translateX(-50%) translateY(0);opacity:1}
 
+/* ── DASHBOARD ── */
+.dash-wrap{flex:1;overflow-y:auto;padding:1.25rem;display:flex;flex-direction:column;gap:1rem}
+.dash-header{display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.dash-title{font-family:'DM Serif Display',serif;font-size:1.5rem}
+.dash-date{font-size:.78rem;color:var(--text2)}
+.dash-kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:900px){.dash-kpis{grid-template-columns:repeat(4,1fr)}}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.1rem;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0}
+.kpi.accent::before{background:var(--accent)}
+.kpi.ok::before{background:var(--ok)}
+.kpi.warn::before{background:#D97706}
+.kpi.blue::before{background:#3B82F6}
+.kpi-val{font-family:'DM Serif Display',serif;font-size:1.9rem;line-height:1;color:var(--text);margin-bottom:3px}
+.kpi-lbl{font-size:.72rem;color:var(--text2);font-weight:500}
+.kpi-sub{font-size:.68rem;color:var(--text3);margin-top:2px}
+.dash-section-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin-top:.25rem}
+.dash-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(min-width:900px){.dash-row{grid-template-columns:1fr 1fr 1fr}}
+.dash-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem}
+.dash-card-title{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:.75rem}
+.dash-list-item{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:.82rem}
+.dash-list-item:last-child{border-bottom:none}
+.dash-list-rank{font-family:'DM Serif Display',serif;font-size:1rem;color:var(--accent);min-width:24px}
+.dash-list-name{flex:1;font-weight:500;padding:0 8px}
+.dash-list-val{font-size:.78rem;color:var(--text2);text-align:right}
+.dash-chart-bar{height:6px;background:var(--surface2);border-radius:3px;margin-top:3px;overflow:hidden}
+.dash-chart-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .5s ease}
+.dash-hourly{display:flex;align-items:flex-end;gap:3px;height:60px;padding-top:.5rem}
+.dash-hour-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.dash-hour-bar{width:100%;background:var(--accent-l);border-radius:2px 2px 0 0;transition:height .4s ease;min-height:2px}
+.dash-hour-bar.active{background:var(--accent)}
+.dash-hour-lbl{font-size:.5rem;color:var(--text3)}
+.dash-pay-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:.82rem}
+.dash-pay-row:last-child{border-bottom:none}
+.dash-pay-icon{font-size:1rem;width:22px;text-align:center}
+.dash-pay-name{flex:1;font-weight:500}
+.dash-pay-bar{flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.dash-pay-fill{height:100%;border-radius:3px;transition:width .4s}
+.dash-pay-val{font-size:.78rem;font-weight:600;color:var(--text);min-width:50px;text-align:right}
+.dash-live-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);animation:pulse-dot 1.5s ease-in-out infinite;display:inline-block;margin-right:4px}
+
+/* ── AÑADIR A PEDIDO MODAL ── */
+.add-to-order-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:700;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;backdrop-filter:blur(3px)}
+.add-to-order-overlay.open{opacity:1;pointer-events:all}
+@media(min-width:900px){.add-to-order-overlay{align-items:center}}
+.add-to-order-modal{background:var(--surface);border-radius:var(--rlg) var(--rlg) 0 0;width:100%;max-width:520px;transform:translateY(60px);transition:transform .3s cubic-bezier(.32,.72,0,1);display:flex;flex-direction:column;max-height:85vh}
+@media(min-width:900px){.add-to-order-modal{border-radius:var(--rlg);transform:scale(.95);max-height:80vh}}
+.add-to-order-overlay.open .add-to-order-modal{transform:translateY(0)}
+@media(min-width:900px){.add-to-order-overlay.open .add-to-order-modal{transform:scale(1)}}
+.ato-header{padding:1.25rem 1.25rem .875rem;border-bottom:1px solid var(--border);flex-shrink:0}
+.ato-handle{width:36px;height:4px;border-radius:2px;background:var(--border2);margin:0 auto .875rem}
+@media(min-width:900px){.ato-handle{display:none}}
+.ato-title{font-family:'DM Serif Display',serif;font-size:1.2rem;margin-bottom:.25rem}
+.ato-subtitle{font-size:.78rem;color:var(--text2)}
+.ato-cats{display:flex;gap:5px;overflow-x:auto;padding:.75rem 1.25rem;border-bottom:1px solid var(--border);flex-shrink:0;scrollbar-width:none}
+.ato-cats::-webkit-scrollbar{display:none}
+.ato-cat-pill{padding:5px 12px;border-radius:50px;border:1px solid var(--border2);background:var(--surface);font-size:.75rem;font-weight:500;color:var(--text2);cursor:pointer;white-space:nowrap;transition:all .12s;flex-shrink:0}
+.ato-cat-pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.ato-products{flex:1;overflow-y:auto;padding:.75rem 1.25rem}
+.ato-product-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.ato-product-row:last-child{border-bottom:none}
+.ato-product-img{width:40px;height:40px;border-radius:var(--rsm);object-fit:contain;background:var(--surface2);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.9rem;overflow:hidden}
+.ato-product-img img{width:100%;height:100%;object-fit:contain}
+.ato-product-info{flex:1;min-width:0}
+.ato-product-name{font-size:.85rem;font-weight:500;line-height:1.2}
+.ato-product-price{font-size:.75rem;color:var(--accent);font-weight:600;margin-top:1px}
+.ato-qty-ctrl{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.ato-qbtn{width:26px;height:26px;border-radius:50%;border:1px solid var(--border2);background:var(--surface2);font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s}
+.ato-qbtn:active{background:var(--border2)}
+.ato-qnum{font-size:.85rem;font-weight:600;min-width:18px;text-align:center}
+.ato-footer{padding:1rem 1.25rem;border-top:1px solid var(--border);flex-shrink:0;display:flex;gap:8px}
+.ato-btn-add{flex:1;padding:.875rem;border:none;border-radius:var(--r);background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .15s}
+.ato-btn-add:disabled{opacity:.35;pointer-events:none}
+.ato-btn-cancel{padding:.875rem 1.25rem;border:1px solid var(--border2);border-radius:var(--r);background:transparent;font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--text2);cursor:pointer}
+
+/* ── PLANO DE MESAS ── */
+.plano-wrap{flex:1;overflow-y:auto;padding:1.25rem}
+.plano-legend{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:1.25rem;padding:.625rem 1rem;background:var(--surface2);border-radius:var(--r)}
+.plano-legend-item{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--text2);font-weight:500}
+.plano-legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.plano-legend-dot.libre{background:var(--surface);border:1.5px solid var(--border2)}
+.plano-legend-dot.pendiente{background:#FEF3C7;border:1.5px solid #D97706}
+.plano-legend-dot.listo{background:var(--ok-bg);border:1.5px solid var(--ok)}
+.plano-section-title{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);margin:1rem 0 .625rem;display:flex;align-items:center;gap:6px}
+.plano-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;margin-bottom:1rem}
+@media(min-width:900px){.plano-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}}
+.mesa-card{border-radius:12px;padding:.875rem .75rem;cursor:pointer;transition:all .2s;border:2px solid var(--border2);background:var(--surface);position:relative;text-align:center;-webkit-user-select:none;user-select:none}
+.mesa-card:hover{transform:scale(1.03);box-shadow:var(--sh)}
+.mesa-card:active{transform:scale(.97)}
+.mesa-card.libre{border-color:var(--border2);background:var(--surface)}
+.mesa-card.libre:hover{border-color:var(--accent)}
+.mesa-card.pendiente{border-color:#D97706;background:#FFFCF5;box-shadow:0 2px 12px rgba(217,119,6,.15)}
+.mesa-card.listo{border-color:var(--ok);background:#F4FBF0;box-shadow:0 2px 12px rgba(59,109,17,.15)}
+.mesa-card.barra{border-radius:8px}
+.mesa-num{font-family:'DM Serif Display',serif;font-size:1.6rem;line-height:1;color:var(--text);margin-bottom:3px}
+.mesa-status-lbl{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.mesa-card.libre .mesa-status-lbl{color:var(--text3)}
+.mesa-card.pendiente .mesa-status-lbl{color:#D97706}
+.mesa-card.listo .mesa-status-lbl{color:var(--ok)}
+.mesa-total{font-size:.78rem;font-weight:600;color:var(--text2);margin-top:3px}
+.mesa-items-preview{font-size:.62rem;color:var(--text2);margin-top:4px;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.mesa-time-badge{position:absolute;top:6px;right:6px;font-size:.6rem;font-weight:600;background:var(--warn-bg);color:var(--warn);padding:1px 5px;border-radius:50px}
+.mesa-time-badge.urgent{background:var(--err-bg);color:var(--err);animation:pulse-badge .8s ease-in-out infinite}
+@keyframes pulse-badge{0%,100%{opacity:1}50%{opacity:.5}}
+.plano-barra-card{width:100%;border-radius:10px;padding:.875rem 1.25rem;cursor:pointer;transition:all .2s;border:2px solid var(--border2);background:var(--surface);display:flex;align-items:center;gap:1rem;margin-bottom:1rem}
+.plano-barra-card:hover{transform:scale(1.01);box-shadow:var(--sh)}
+.plano-barra-card.pendiente{border-color:#D97706;background:#FFFCF5}
+.plano-barra-card.listo{border-color:var(--ok);background:#F4FBF0}
+.plano-barra-num{font-family:'DM Serif Display',serif;font-size:1.4rem;flex-shrink:0}
+.plano-barra-info{flex:1;min-width:0}
+
 /* ── CIERRE DE CAJA ── */
 .cierre-wrap{padding:1rem;flex:1;overflow-y:auto}
 .cierre-period{font-size:.72rem;color:var(--text2);margin-bottom:1.25rem;display:flex;align-items:center;gap:6px}
@@ -472,6 +584,13 @@ textarea.form-input{resize:none;min-height:76px;margin-bottom:0}
 .cierre-diff-lbl{font-size:.82rem;font-weight:600}
 .cierre-diff-val{font-family:'DM Serif Display',serif;font-size:1.4rem}
 .cierre-btn{width:100%;padding:.875rem;border:none;border-radius:var(--r);background:var(--text);color:#fff;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;margin-top:1rem;transition:all .15s}
+.cierre-btn:hover{opacity:.85}
+.cierre-btns-row{display:flex;gap:8px;margin-top:1rem}
+.cierre-btn-save{flex:1;padding:.875rem;border:none;border-radius:var(--r);background:var(--accent);color:#fff;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .15s}
+.cierre-btn-save:hover{background:var(--accent-d)}
+.cierre-btn-export{flex:1;padding:.875rem;border:1px solid var(--border2);border-radius:var(--r);background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .15s}
+.cierre-btn-export:hover{background:var(--border2)}
+.cierre-saved-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:50px;background:var(--ok-bg);color:var(--ok);font-size:.75rem;font-weight:600;margin-top:.75rem}
 .cierre-btn:hover{opacity:.85}
 
 /* ── RANKING ── */
@@ -573,9 +692,15 @@ textarea.form-input{resize:none;min-height:76px;margin-bottom:0}
       <button class="nav-item active" id="dnav-menu" onclick="deskSwitch('menu')">
         <span class="nav-item-icon">🍽</span> Carta
       </button>
+      <button class="nav-item" id="dnav-dashboard" onclick="deskSwitch('dashboard')">
+        <span class="nav-item-icon">📊</span> Dashboard
+      </button>
+      <button class="nav-item" id="dnav-plano" onclick="deskSwitch('plano')">
+        <span class="nav-item-icon">🗺</span> Plano de mesas
+        <span id="dnav-badge" class="nav-badge" style="display:none">0</span>
+      </button>
       <button class="nav-item" id="dnav-orders" onclick="deskSwitch('orders')">
         <span class="nav-item-icon">📋</span> Pedidos activos
-        <span id="dnav-badge" class="nav-badge" style="display:none">0</span>
       </button>
       <button class="nav-item" id="dnav-history" onclick="deskSwitch('history')">
         <span class="nav-item-icon">📅</span> Histórico
@@ -599,11 +724,12 @@ textarea.form-input{resize:none;min-height:76px;margin-bottom:0}
       </div>
       <div class="mobile-tabs">
         <button class="tab-btn active" id="tab-menu" onclick="mobSwitch('menu')">🍽 Carta</button>
-        <button class="tab-btn" id="tab-orders" onclick="mobSwitch('orders')" style="position:relative">
-          📋 Pedidos
+        <button class="tab-btn" id="tab-dashboard" onclick="mobSwitch('dashboard')">📊</button>
+        <button class="tab-btn" id="tab-plano" onclick="mobSwitch('plano')">🗺 Mesas
           <span id="tab-orders-badge" style="display:none;position:absolute;top:2px;right:2px;background:var(--accent);color:#fff;font-size:.6rem;font-weight:700;width:16px;height:16px;border-radius:50%;align-items:center;justify-content:center;line-height:1">0</span>
         </button>
-        <button class="tab-btn" id="tab-history" onclick="mobSwitch('history')">📅 Historial</button>
+        <button class="tab-btn" id="tab-orders" onclick="mobSwitch('orders')">📋 Pedidos</button>
+        <button class="tab-btn" id="tab-history" onclick="mobSwitch('history')">📅</button>
       </div>
     </div>
 
@@ -636,6 +762,24 @@ textarea.form-input{resize:none;min-height:76px;margin-bottom:0}
             <button class="mob-btn-confirm" id="mob-btn-confirm" onclick="openMesaModal()" disabled>✓ Confirmar pedido</button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- VIEW: DASHBOARD -->
+    <div id="view-dashboard" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+      <div class="dash-wrap" id="dash-wrap">
+        <!-- Generated by JS -->
+      </div>
+    </div>
+
+    <!-- VIEW: PLANO DE MESAS -->
+    <div id="view-plano" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+      <div class="orders-header-bar">
+        <span class="orders-header-title">Plano de mesas</span>
+        <div class="orders-live-badge"><div class="orders-live-dot"></div> En tiempo real</div>
+      </div>
+      <div class="plano-wrap" id="plano-wrap">
+        <!-- Generated by JS -->
       </div>
     </div>
 
@@ -1284,6 +1428,20 @@ function selectMesa(mesa) {
   confirmOrder(String(mesa), comment);
 }
 
+// Override openMesaModal to pre-select mesa if coming from plano
+const _origOpenMesaModal = openMesaModal;
+function openMesaModal() {
+  _origOpenMesaModal();
+  if (pendingMesaFromPlano) {
+    // Highlight the pre-selected mesa button
+    setTimeout(() => {
+      const btn = document.querySelector(`.mesa-btn[onclick*="selectMesa('${pendingMesaFromPlano}')"]`);
+      if (btn) { btn.style.border='2px solid var(--accent)'; btn.style.background='var(--accent-l)'; }
+    }, 50);
+    pendingMesaFromPlano = null;
+  }
+}
+
 // Close mesa modal on overlay click
 document.getElementById('modal-mesa-select').addEventListener('click', e => {
   if(e.target === document.getElementById('modal-mesa-select')) closeMesaModal();
@@ -1387,6 +1545,7 @@ function buildOrdersBig() {
           ${o.status==='pending'?`<button class="btn-ocb ready" onclick="setStatus('${o.fbKey}','ready')">✓ Listo</button>`:''}
           ${o.status==='ready'?`<button class="btn-ocb paid" onclick="openCobro('${o.fbKey}')">💳 Cobrar</button>`:''}
           ${o.status==='ready'?`<button class="btn-ocb undo" onclick="revertStatus('${o.fbKey}')" title="Volver a preparación">↩</button>`:''}
+          <button class="btn-ocb" style="background:var(--accent-l);color:var(--accent-d)" onclick="openATO('${o.fbKey}')" title="Añadir productos">➕</button>
           <button class="btn-ocb print" onclick="printOrder('${o.fbKey}')" title="Imprimir ticket">🖨</button>
           <button class="btn-ocb delete" onclick="deleteOrder('${o.fbKey}')" title="Eliminar pedido">🗑</button>
         </div>
@@ -1452,6 +1611,7 @@ function buildOrdersMob() {
             ${o.status==='pending'?`<button class="btn-sm ok" onclick="setStatus('${o.fbKey}','ready')">Listo ✓</button>`:''}
             ${o.status==='ready'?`<button class="btn-sm ok" onclick="openCobro('${o.fbKey}')">💳 Cobrar</button>`:''}
             ${o.status==='ready'?`<button class="btn-sm" onclick="revertStatus('${o.fbKey}')" title="Volver a preparación">↩</button>`:''}
+            <button class="btn-sm" onclick="openATO('${o.fbKey}')" style="background:var(--accent-l);color:var(--accent-d)">➕</button>
             <button class="btn-sm" onclick="printOrder('${o.fbKey}')" title="Imprimir">🖨</button>
             <button class="btn-sm" onclick="deleteOrder('${o.fbKey}')" style="color:var(--err)">🗑</button>
           </div>
@@ -1796,6 +1956,141 @@ function renderHistList(ds,lblId,sumId,listId) {
   }
 }
 
+// ══════════════════════════════════════
+//  PLANO DE MESAS
+// ══════════════════════════════════════
+let planoInterval = null;
+
+function renderPlano() {
+  const wrap = document.getElementById('plano-wrap');
+  if (!wrap) return;
+
+  // Build mesa state map from active orders
+  const mesaMap = {}; // mesaName → {status, orders:[]}
+  orders.filter(o => o.status !== 'paid').forEach(o => {
+    const mesa = o.mesa || getMesa(o.note) || '';
+    if (!mesa) return;
+    if (!mesaMap[mesa]) mesaMap[mesa] = { status: 'pendiente', orders: [] };
+    mesaMap[mesa].orders.push(o);
+    // If any order is 'ready', mark mesa as listo
+    if (o.status === 'ready') mesaMap[mesa].status = 'listo';
+  });
+
+  // Time since oldest order per mesa
+  function mesaTime(mesaOrders) {
+    if (!mesaOrders.length) return null;
+    const oldest = mesaOrders.reduce((a, o) => {
+      const t = o.timestamp || 0;
+      return t < a ? t : a;
+    }, Infinity);
+    if (!oldest || oldest === Infinity) return null;
+    const mins = Math.round((Date.now() - oldest) / 60000);
+    return mins;
+  }
+
+  function timeBadge(mins) {
+    if (mins === null) return '';
+    const urgent = mins >= 20;
+    return `<div class="mesa-time-badge${urgent?' urgent':''}">${mins}min</div>`;
+  }
+
+  function mesaStatus(m) { return mesaMap[m] ? mesaMap[m].status : 'libre'; }
+
+  function onClickMesa(mesa) {
+    // If mesa has active orders → go to orders view filtered
+    if (mesaMap[mesa]) {
+      if (isDesk()) deskSwitch('orders'); else mobSwitch('orders');
+      // Scroll to first card of this mesa after short delay
+      setTimeout(() => {
+        const cards = document.querySelectorAll('.order-card-big,.order-card');
+        for (const c of cards) {
+          if (c.textContent.includes('Mesa '+mesa) || c.textContent.includes(mesa)) {
+            c.scrollIntoView({behavior:'smooth', block:'center'});
+            c.style.outline = '3px solid var(--accent)';
+            setTimeout(() => c.style.outline = '', 2000);
+            break;
+          }
+        }
+      }, 300);
+    } else {
+      // Free mesa → start new order for this mesa
+      cart = [];
+      renderCart();
+      if (isDesk()) deskSwitch('menu'); else mobSwitch('menu');
+      // Pre-select this mesa in the confirm flow
+      pendingMesaFromPlano = String(mesa);
+      showToast('📍 Mesa ' + mesa + ' seleccionada — añade productos y confirma');
+    }
+  }
+
+  // Barra section
+  const barraState = mesaMap['Barra'];
+  const barraOrders = barraState ? barraState.orders : [];
+  const barraMin = mesaTime(barraOrders);
+  const barraCls = barraState ? barraState.status : 'libre';
+  const barraStatusText = { libre:'Libre', pendiente:'En preparación', listo:'Listo para servir' };
+  const barraItemsPreview = barraOrders.length
+    ? barraOrders.map(o => o.items.map(it=>`${it.qty}× ${it.name}`).join(', ')).join(' | ')
+    : '';
+
+  // Mesas numeradas
+  const mesaCards = Array.from({length: NUM_MESAS}, (_,i) => {
+    const n = i+1, key = String(n);
+    const state = mesaMap[key];
+    const cls = mesaStatus(key);
+    const mins = mesaTime(state?.orders||[]);
+    const statusText = { libre:'Libre', pendiente:'En preparación', listo:'Listo para servir' };
+    const preview = state?.orders.length
+      ? state.orders[0].items.map(it=>`${it.qty}× ${it.name}`).join(', ')
+      : '';
+    const total = state?.orders.reduce((a,o)=>a+(o.amountPaid??o.total),0)||0;
+    return `
+      <div class="mesa-card ${cls}" onclick="onClickMesa('${key}')">
+        ${timeBadge(mins)}
+        <div class="mesa-num">${n}</div>
+        <div class="mesa-status-lbl">${statusText[cls]}</div>
+        ${state ? `<div class="mesa-total">${fmt(total)}</div>
+        <div class="mesa-items-preview">${preview}</div>` : ''}
+      </div>`;
+  }).join('');
+
+  // Count summary
+  const libre = NUM_MESAS + 1 - Object.keys(mesaMap).length; // +1 for barra
+  const ocupadas = Object.keys(mesaMap).length;
+
+  wrap.innerHTML = `
+    <div class="plano-legend">
+      <div class="plano-legend-item"><div class="plano-legend-dot libre"></div>Libre</div>
+      <div class="plano-legend-item"><div class="plano-legend-dot pendiente"></div>En preparación</div>
+      <div class="plano-legend-item"><div class="plano-legend-dot listo"></div>Listo para servir</div>
+      <div style="margin-left:auto;font-size:.75rem;color:var(--text2)">
+        <strong style="color:var(--text)">${ocupadas}</strong> ocupada${ocupadas!==1?'s':''} · <strong style="color:var(--text)">${Object.values(mesaMap).filter(m=>m.status==='listo').length}</strong> lista${Object.values(mesaMap).filter(m=>m.status==='listo').length!==1?'s':''} para servir
+      </div>
+    </div>
+
+    <!-- BARRA -->
+    <div class="plano-section-title">🍺 Barra</div>
+    <div class="plano-barra-card ${barraCls}" onclick="onClickMesa('Barra')">
+      ${timeBadge(barraMin)}
+      <div class="plano-barra-num">Barra</div>
+      <div class="plano-barra-info">
+        <div style="font-size:.8rem;font-weight:600;color:${barraCls==='libre'?'var(--text3)':barraCls==='listo'?'var(--ok)':'#D97706'}">
+          ${barraStatusText[barraCls]}
+        </div>
+        ${barraOrders.length ? `<div style="font-size:.68rem;color:var(--text2);margin-top:2px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${barraItemsPreview}</div>` : ''}
+      </div>
+      ${barraOrders.length ? `<div style="font-family:'DM Serif Display',serif;font-size:1.1rem;flex-shrink:0">${fmt(barraOrders.reduce((a,o)=>a+(o.amountPaid??o.total),0))}</div>` : ''}
+    </div>
+
+    <!-- MESAS -->
+    <div class="plano-section-title">🪑 Mesas</div>
+    <div class="plano-grid">${mesaCards}</div>
+  `;
+}
+
+// Pre-selected mesa from plano click
+let pendingMesaFromPlano = null;
+
 function initHist(){
   calYear=new Date().getFullYear();calMonth=new Date().getMonth();selDate=todayStr();
   buildCal('mob-cal-wrap','mob-day-lbl','mob-day-sum','mob-hist-list');
@@ -1956,14 +2251,26 @@ function renderCierre() {
           value="${saved.tarjetaReal||''}" oninput="saveCierreInputs('${cierreKey}'); calcArqueo()">
       </div>
       <div id="cierre-arqueo-result" style="margin-top:.875rem"></div>
+      <div id="cierre-saved-indicator" style="margin-top:.75rem"></div>
+      <div class="cierre-btns-row">
+        <button class="cierre-btn-save" onclick="guardarCierre()">
+          💾 Guardar cierre
+        </button>
+        <button class="cierre-btn-export" onclick="exportarCierreExcel()">
+          ⬇ Exportar Excel
+        </button>
+      </div>
     </div>`;
 
   // Calculate if there are saved values
   if (saved.inicio !== undefined) calcArqueo(efectivo, totalCob);
   // Store current totals for calcArqueo
-  el.dataset.efectivo = efectivo;
-  el.dataset.tarjeta  = tarjeta;
-  el.dataset.totalCob = totalCob;
+  el.dataset.efectivo   = efectivo;
+  el.dataset.tarjeta    = tarjeta;
+  el.dataset.otros      = otros;
+  el.dataset.totalCob   = totalCob;
+  el.dataset.totalReal  = totalReal;
+  el.dataset.numTickets = numTickets;
 }
 
 function calcArqueo() {
@@ -2016,6 +2323,147 @@ function saveCierreInputs(key) {
     tarjetaReal:document.getElementById('cierre-tarjeta-real')?.value,
   };
   localStorage.setItem(key, JSON.stringify(data));
+}
+
+// ── Build full cierre data object ──
+function buildCierreData() {
+  const { from, to } = getCierreDateRange();
+  const el = document.getElementById('cierre-content');
+  const efectivo   = parseFloat(el?.dataset.efectivo||0);
+  const tarjeta    = parseFloat(el?.dataset.tarjeta||0);
+  const otros      = parseFloat(el?.dataset.otros||0);
+  const totalCob   = parseFloat(el?.dataset.totalCob||0);
+  const totalReal  = parseFloat(el?.dataset.totalReal||0);
+  const numTickets = parseInt(el?.dataset.numTickets||0);
+  const inicio     = parseFloat(document.getElementById('cierre-inicio')?.value)||0;
+  const contado    = parseFloat(document.getElementById('cierre-contado')?.value)||0;
+  const tarjetaR   = parseFloat(document.getElementById('cierre-tarjeta-real')?.value)||0;
+  const expectedCash = inicio + efectivo;
+  const diffCash   = contado - expectedCash;
+  const diffCard   = tarjetaR - tarjeta;
+  const totalDiff  = diffCash + diffCard;
+
+  // Products breakdown for the period
+  const paid = orders.filter(o => o.status==='paid' && o.date>=from && o.date<=to);
+  const prodMap = {};
+  paid.forEach(o => o.items.forEach(it => {
+    if(!prodMap[it.name]) prodMap[it.name]={name:it.name,cat:it.cat||'',qty:0,revenue:0};
+    prodMap[it.name].qty     += it.qty;
+    prodMap[it.name].revenue += it.qty*it.price;
+  }));
+  const products = Object.values(prodMap).sort((a,b)=>b.qty-a.qty);
+
+  return {
+    from, to,
+    numTickets,
+    totalFacturado:   totalReal,
+    totalCobrado:     totalCob,
+    efectivoCobrado:  efectivo,
+    tarjetaCobrada:   tarjeta,
+    otrosCobrado:     otros,
+    descuentos:       totalReal - totalCob,
+    efectivoInicial:  inicio,
+    efectivoContado:  contado,
+    efectivoEsperado: expectedCash,
+    diffEfectivo:     diffCash,
+    tarjetaDatafono:  tarjetaR,
+    diffTarjeta:      diffCard,
+    descuadreTotalL:   totalDiff,
+    cuadra:           Math.abs(totalDiff) < 0.05,
+    cerradoPor:       currentUser?.email || '',
+    cerradoEn:        new Date().toISOString(),
+    products,
+  };
+}
+
+// ── Save cierre to Firebase ──
+async function guardarCierre() {
+  if (!db) { showToast('⚠ Sin conexión con Firebase'); return; }
+  const data = buildCierreData();
+  const key  = `${data.from}_${data.to}`.replace(/-/g,'');
+  try {
+    await db.ref('cierres/' + key).set(data);
+    // Show saved badge
+    const ind = document.getElementById('cierre-saved-indicator');
+    if (ind) ind.innerHTML = `<span class="cierre-saved-badge">✓ Cierre guardado el ${new Date().toLocaleString('es',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</span>`;
+    showToast('✓ Cierre de caja guardado en Firebase');
+  } catch(e) { showToast('⚠ Error: '+e.message); }
+}
+
+// ── Export cierre to Excel ──
+function exportarCierreExcel() {
+  if(typeof XLSX==='undefined'){showToast('⚠ Cargando XLSX...');return;}
+  const d = buildCierreData();
+  const label = d.from===d.to ? d.from : `${d.from} a ${d.to}`;
+  const n = v => (typeof v==='number') ? parseFloat(v.toFixed(2)) : v;
+  const bool = v => v ? 'Sí' : 'No';
+
+  // ── Sheet 1: Resumen ──
+  const resumen = [
+    ['CIERRE DE CAJA — XQUISITO LOUNGE'],
+    ['Período:', label],
+    ['Cerrado por:', d.cerradoPor],
+    ['Fecha cierre:', d.cerradoEn ? new Date(d.cerradoEn).toLocaleString('es') : ''],
+    [],
+    ['VENTAS', ''],
+    ['Tickets cobrados',         d.numTickets],
+    ['Total facturado (€)',       n(d.totalFacturado)],
+    ['Total cobrado (€)',         n(d.totalCobrado)],
+    ['Descuentos e invit. (€)',   n(d.descuentos)],
+    [],
+    ['POR MÉTODO DE PAGO', ''],
+    ['Efectivo cobrado (€)',      n(d.efectivoCobrado)],
+    ['Tarjeta cobrada (€)',       n(d.tarjetaCobrada)],
+    ['Otros cobrado (€)',         n(d.otrosCobrado)],
+    [],
+    ['ARQUEO DE CAJA', ''],
+    ['Efectivo inicial (€)',      n(d.efectivoInicial)],
+    ['Efectivo esperado (€)',     n(d.efectivoEsperado)],
+    ['Efectivo contado (€)',      n(d.efectivoContado)],
+    ['Diferencia efectivo (€)',   n(d.diffEfectivo)],
+    ['Tarjeta datafono (€)',      n(d.tarjetaDatafono)],
+    ['Diferencia tarjeta (€)',    n(d.diffTarjeta)],
+    ['Descuadre total (€)',       n(d.descuadreTotalL)],
+    ['Caja cuadrada',             bool(d.cuadra)],
+  ];
+
+  // ── Sheet 2: Productos vendidos ──
+  const prods = [
+    ['Pos.','Producto','Categoría','Uds. vendidas','Importe (€)'],
+    ...d.products.map((p,i) => [i+1, p.name, p.cat, p.qty, n(p.revenue)]),
+  ];
+
+  // ── Sheet 3: Tickets del período ──
+  const paid = orders.filter(o => o.status==='paid' && o.date>=d.from && o.date<=d.to);
+  const tickets = [
+    ['Ticket','Fecha','Hora','Mesa','Método pago','Total facturado (€)','Total cobrado (€)','Descuento','Invitación','Motivo descuento','Productos'],
+    ...paid.map(o => [
+      o.id, o.date, o.time,
+      o.mesa || '',
+      o.paymentMethod || 'efectivo',
+      n(o.total),
+      n(o.amountPaid ?? o.total),
+      bool(o.hasDiscount && !o.isInvited),
+      bool(o.isInvited),
+      o.discountReason || '',
+      o.items.map(it=>`${it.qty}× ${it.name}`).join(', '),
+    ]),
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resumen), 'Resumen');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(prods),   'Productos vendidos');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(tickets), 'Tickets');
+
+  // Style first sheet header (just bold via column widths)
+  const ws1 = wb.Sheets['Resumen'];
+  ws1['!cols'] = [{wch:28},{wch:18}];
+  wb.Sheets['Productos vendidos']['!cols'] = [{wch:5},{wch:28},{wch:16},{wch:14},{wch:14}];
+  wb.Sheets['Tickets']['!cols'] = [{wch:8},{wch:12},{wch:8},{wch:10},{wch:12},{wch:18},{wch:16},{wch:10},{wch:10},{wch:20},{wch:40}];
+
+  const filename = `cierre_${d.from}_${d.to}.xlsx`;
+  XLSX.writeFile(wb, filename);
+  showToast('✓ Excel exportado: '+filename);
 }
 
 // ══════════════════════════════════════
@@ -2131,32 +2579,305 @@ function renderRanking() {
 }
 
 // ══════════════════════════════════════
+//  DASHBOARD
+// ══════════════════════════════════════
+let dashInterval = null;
+
+function renderDashboard() {
+  const wrap = document.getElementById('dash-wrap');
+  if (!wrap) return;
+
+  const today  = todayStr();
+  const now    = new Date();
+  const todayOrders = orders.filter(o => o.date === today);
+  const paidToday   = todayOrders.filter(o => o.status === 'paid');
+  const activeNow   = orders.filter(o => o.status !== 'paid');
+
+  // KPIs
+  const totalFacturado = paidToday.reduce((a,o) => a+o.total, 0);
+  const totalCobrado   = paidToday.reduce((a,o) => a+(o.amountPaid??o.total), 0);
+  const ticketMedio    = paidToday.length ? totalCobrado/paidToday.length : 0;
+
+  // Payment breakdown
+  const byMethod = { efectivo:0, tarjeta:0, otros:0 };
+  paidToday.forEach(o => { byMethod[o.paymentMethod||'efectivo'] += (o.amountPaid??o.total); });
+  const maxPay = Math.max(...Object.values(byMethod), 0.01);
+
+  // Top products today
+  const prodMap = {};
+  paidToday.forEach(o => o.items.forEach(it => {
+    if(!prodMap[it.name]) prodMap[it.name]={name:it.name,qty:0,rev:0};
+    prodMap[it.name].qty += it.qty;
+    prodMap[it.name].rev += it.qty*it.price;
+  }));
+  const topProds = Object.values(prodMap).sort((a,b)=>b.qty-a.qty).slice(0,5);
+  const maxQty   = topProds.length ? topProds[0].qty : 1;
+
+  // Hourly chart (7am-11pm)
+  const hourCounts = {};
+  paidToday.forEach(o => {
+    const h = o.time ? parseInt(o.time.split(':')[0]) : null;
+    if(h!==null) hourCounts[h] = (hourCounts[h]||0)+1;
+  });
+  const hours = Array.from({length:17},(_,i)=>i+7); // 7..23
+  const maxH  = Math.max(...hours.map(h=>hourCounts[h]||0), 1);
+  const curH  = now.getHours();
+
+  // Active mesas
+  const mesasActivas = new Set(activeNow.map(o=>o.mesa||getMesa(o.note)).filter(Boolean));
+  const listos = activeNow.filter(o=>o.status==='ready').length;
+
+  const dateLabel = now.toLocaleDateString('es',{weekday:'long',day:'numeric',month:'long'});
+
+  wrap.innerHTML = `
+    <div class="dash-header">
+      <div>
+        <div class="dash-title">📊 Dashboard</div>
+        <div class="dash-date"><span class="dash-live-dot"></span>${dateLabel}</div>
+      </div>
+      <div style="font-size:.72rem;color:var(--text2);text-align:right">
+        ${activeNow.length} pedido${activeNow.length!==1?'s':''} activo${activeNow.length!==1?'s':''}<br>
+        ${listos>0?`<strong style="color:var(--ok)">${listos} listo${listos!==1?'s':''} para servir</strong>`:''}
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="dash-kpis">
+      <div class="kpi accent">
+        <div class="kpi-val">${fmt(totalCobrado)}</div>
+        <div class="kpi-lbl">💰 Cobrado hoy</div>
+        ${Math.abs(totalFacturado-totalCobrado)>0.01?`<div class="kpi-sub">Facturado: ${fmt(totalFacturado)}</div>`:''}
+      </div>
+      <div class="kpi ok">
+        <div class="kpi-val">${paidToday.length}</div>
+        <div class="kpi-lbl">🎫 Tickets cobrados</div>
+        <div class="kpi-sub">${todayOrders.length} pedidos totales</div>
+      </div>
+      <div class="kpi warn">
+        <div class="kpi-val">${fmt(ticketMedio)}</div>
+        <div class="kpi-lbl">🧾 Ticket medio</div>
+        <div class="kpi-sub">Por pedido cobrado</div>
+      </div>
+      <div class="kpi blue">
+        <div class="kpi-val">${mesasActivas.size}</div>
+        <div class="kpi-lbl">🪑 Mesas activas</div>
+        <div class="kpi-sub">${activeNow.length} pedido${activeNow.length!==1?'s':''} abierto${activeNow.length!==1?'s':''}</div>
+      </div>
+    </div>
+
+    <div class="dash-row">
+      <!-- Top productos -->
+      <div class="dash-card">
+        <div class="dash-card-title">🏆 Top productos hoy</div>
+        ${!topProds.length
+          ? '<div style="color:var(--text3);font-size:.82rem;text-align:center;padding:1rem">Sin ventas aún</div>'
+          : topProds.map((p,i)=>`
+            <div class="dash-list-item">
+              <span class="dash-list-rank">${['🥇','🥈','🥉','4','5'][i]}</span>
+              <span class="dash-list-name">${p.name}</span>
+              <div style="text-align:right">
+                <div class="dash-list-val" style="font-weight:600;color:var(--text)">${p.qty} ud</div>
+                <div class="dash-list-val">${fmt(p.rev)}</div>
+              </div>
+            </div>
+            <div class="dash-chart-bar"><div class="dash-chart-fill" style="width:${Math.round(p.qty/maxQty*100)}%"></div></div>
+          `).join('')
+        }
+      </div>
+
+      <!-- Métodos de pago -->
+      <div class="dash-card">
+        <div class="dash-card-title">💳 Métodos de pago</div>
+        ${[
+          {key:'efectivo',icon:'💵',label:'Efectivo',color:'#22c55e'},
+          {key:'tarjeta', icon:'💳',label:'Tarjeta', color:'#3b82f6'},
+          {key:'otros',   icon:'📱',label:'Otros',   color:'#a855f7'},
+        ].map(m=>`
+          <div class="dash-pay-row">
+            <span class="dash-pay-icon">${m.icon}</span>
+            <span class="dash-pay-name">${m.label}</span>
+            <div class="dash-pay-bar"><div class="dash-pay-fill" style="width:${Math.round(byMethod[m.key]/maxPay*100)}%;background:${m.color}"></div></div>
+            <span class="dash-pay-val">${fmt(byMethod[m.key])}</span>
+          </div>`).join('')}
+        <div style="border-top:1px solid var(--border);margin-top:.75rem;padding-top:.75rem;display:flex;justify-content:space-between;font-size:.82rem">
+          <span style="color:var(--text2)">Total cobrado</span>
+          <span style="font-family:'DM Serif Display',serif;font-size:1.1rem">${fmt(totalCobrado)}</span>
+        </div>
+      </div>
+
+      <!-- Actividad por hora -->
+      <div class="dash-card" style="grid-column:span 2">
+        <div class="dash-card-title">⏰ Actividad por hora</div>
+        <div class="dash-hourly">
+          ${hours.map(h=>`
+            <div class="dash-hour-bar-wrap">
+              <div class="dash-hour-bar${h===curH?' active':''}"
+                style="height:${Math.round((hourCounts[h]||0)/maxH*100)}%;${h===curH?'background:var(--accent)':''}"></div>
+              <div class="dash-hour-lbl">${h}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+
+  // Auto-refresh every 30s while on dashboard
+  clearInterval(dashInterval);
+  dashInterval = setInterval(() => {
+    if (deskView==='dashboard' || mobView==='dashboard') renderDashboard();
+    else clearInterval(dashInterval);
+  }, 30000);
+}
+
+// ══════════════════════════════════════
+//  AÑADIR PRODUCTOS A PEDIDO EXISTENTE
+// ══════════════════════════════════════
+let atoFbKey    = null;   // target order
+let atoCart     = {};     // { productId: qty }
+let atoCatSel   = 'Todos';
+
+function openATO(fbKey) {
+  const o = orders.find(x => x.fbKey === fbKey);
+  if (!o) return;
+  atoFbKey  = fbKey;
+  atoCart   = {};
+  atoCatSel = 'Todos';
+  const mesa = o.mesa || getMesa(o.note) || '';
+  document.getElementById('ato-subtitle').textContent =
+    `Pedido ${o.id}${mesa ? ' · Mesa '+mesa : ''}`;
+  renderATOCats();
+  renderATOProducts();
+  renderATOFooter();
+  document.getElementById('ato-overlay').classList.add('open');
+}
+
+function closeATO() {
+  document.getElementById('ato-overlay').classList.remove('open');
+  atoFbKey = null; atoCart = {};
+}
+
+function renderATOCats() {
+  const cats = ['Todos', ...new Set(menu.map(p=>p.cat))];
+  // respect catOrder
+  const ordered = ['Todos', ...getCatOrder().filter(c=>new Set(menu.map(p=>p.cat)).has(c)),
+    ...menu.map(p=>p.cat).filter(c=>!getCatOrder().includes(c) && c!=='Todos')
+    .filter((c,i,a)=>a.indexOf(c)===i)];
+  document.getElementById('ato-cats').innerHTML = ordered.map(c=>
+    `<span class="ato-cat-pill${c===atoCatSel?' active':''}" onclick="atoSelectCat('${c}')">${c}</span>`
+  ).join('');
+}
+
+function atoSelectCat(c) {
+  atoCatSel = c; renderATOCats(); renderATOProducts();
+}
+
+function renderATOProducts() {
+  const list = (atoCatSel==='Todos' ? menu : menu.filter(p=>p.cat===atoCatSel))
+    .filter(p=>p.available!==false);
+  document.getElementById('ato-products').innerHTML = list.map(p => {
+    const qty = atoCart[p.id]||0;
+    const img = p.img
+      ? `<img src="${p.img}" onerror="this.style.display='none'">`
+      : `<span>${p.emoji||'🍽'}</span>`;
+    return `<div class="ato-product-row">
+      <div class="ato-product-img">${img}</div>
+      <div class="ato-product-info">
+        <div class="ato-product-name">${p.name}</div>
+        <div class="ato-product-price">${fmt(p.price)}</div>
+      </div>
+      <div class="ato-qty-ctrl">
+        <button class="ato-qbtn" onclick="atoChgQty('${p.id}',-1)">−</button>
+        <span class="ato-qnum">${qty}</span>
+        <button class="ato-qbtn" onclick="atoChgQty('${p.id}',1)">+</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function atoChgQty(id, delta) {
+  atoCart[id] = Math.max(0, (atoCart[id]||0)+delta);
+  if (atoCart[id]===0) delete atoCart[id];
+  renderATOProducts();
+  renderATOFooter();
+}
+
+function renderATOFooter() {
+  const count = Object.values(atoCart).reduce((a,v)=>a+v,0);
+  const total = Object.entries(atoCart).reduce((a,[id,qty])=>{
+    const p = menu.find(x=>x.id===id);
+    return a+(p?p.price*qty:0);
+  }, 0);
+  const btn = document.getElementById('ato-btn-add');
+  btn.disabled = count===0;
+  btn.textContent = count>0 ? `➕ Añadir ${count} producto${count!==1?'s':''} · ${fmt(total)}` : '➕ Añadir productos';
+}
+
+async function confirmATO() {
+  if (!atoFbKey || !Object.keys(atoCart).length) return;
+  const o = orders.find(x=>x.fbKey===atoFbKey);
+  if (!o) return;
+
+  // Merge new items into existing items
+  const newItems = [...o.items];
+  Object.entries(atoCart).forEach(([id, qty]) => {
+    const p = menu.find(x=>x.id===id); if(!p) return;
+    const existing = newItems.find(it=>it.id===id);
+    if (existing) existing.qty += qty;
+    else newItems.push({id, name:p.name, price:p.price, qty, cat:p.cat||''});
+  });
+  const newTotal = newItems.reduce((a,it)=>a+it.price*it.qty, 0);
+
+  try {
+    await db.ref('orders/'+atoFbKey).update({
+      items: newItems,
+      total: newTotal,
+      // reset payment if was already cobrado (shouldn't happen but safety)
+    });
+    closeATO();
+    showToast('✓ Productos añadidos al pedido '+o.id);
+  } catch(e) { showToast('⚠ Error: '+e.message); }
+}
+
+// Close ATO on overlay click
+document.getElementById('ato-overlay').addEventListener('click', e=>{
+  if(e.target===document.getElementById('ato-overlay')) closeATO();
+});
+
+// ══════════════════════════════════════
 //  VIEW SWITCHING
 // ══════════════════════════════════════
 function deskSwitch(view) {
   deskView=view;
-  // Center column views
-  document.getElementById('view-menu').style.display    = view==='menu'?'flex':'none';
-  document.getElementById('view-orders').style.display  = view==='orders'?'flex':'none';
-  document.getElementById('view-history').style.display = view==='history'?'flex':'none';
-  // Right column panels
-  document.getElementById('desk-order-panel').style.display   = view==='menu'?'flex':'none';
-  document.getElementById('desk-orders-panel').style.display  = 'none';
-  document.getElementById('desk-history-panel').style.display = 'none';
-  // Hide right column on orders AND history — both go full center
-  document.querySelector('.col-right').style.display = (view==='orders'||view==='history') ? 'none' : 'flex';
-  ['menu','orders','history'].forEach(v=>document.getElementById('dnav-'+v).classList.toggle('active',v===view));
-  if(view==='orders') buildOrdersBig();
-  if(view==='history') initHist();
+  ['menu','dashboard','plano','orders','history'].forEach(v=>{
+    const el=document.getElementById('view-'+v);
+    if(el) el.style.display=v===view?'flex':'none';
+  });
+  document.getElementById('desk-order-panel').style.display  = view==='menu'?'flex':'none';
+  document.getElementById('desk-orders-panel').style.display = 'none';
+  document.getElementById('desk-history-panel').style.display= 'none';
+  const fullWidth=['orders','history','plano','dashboard'];
+  document.querySelector('.col-right').style.display=fullWidth.includes(view)?'none':'flex';
+  ['menu','dashboard','plano','orders','history'].forEach(v=>{
+    const el=document.getElementById('dnav-'+v);
+    if(el) el.classList.toggle('active',v===view);
+  });
+  if(view==='orders')    buildOrdersBig();
+  if(view==='plano')     renderPlano();
+  if(view==='history')   initHist();
+  if(view==='dashboard') renderDashboard();
 }
 function mobSwitch(view) {
   mobView=view;
-  document.getElementById('view-menu').style.display=view==='menu'?'flex':'none';
-  document.getElementById('view-orders').style.display=view==='orders'?'flex':'none';
-  document.getElementById('view-history').style.display=view==='history'?'flex':'none';
-  ['menu','orders','history'].forEach(v=>document.getElementById('tab-'+v).classList.toggle('active',v===view));
-  if(view==='orders') buildOrdersMob();
-  if(view==='history') initHist();
+  ['menu','dashboard','plano','orders','history'].forEach(v=>{
+    const el=document.getElementById('view-'+v);
+    if(el) el.style.display=v===view?'flex':'none';
+  });
+  ['menu','dashboard','plano','orders','history'].forEach(v=>{
+    const el=document.getElementById('tab-'+v);
+    if(el) el.classList.toggle('active',v===view);
+  });
+  if(view==='orders')    buildOrdersMob();
+  if(view==='plano')     renderPlano();
+  if(view==='history')   initHist();
+  if(view==='dashboard') renderDashboard();
 }
 
 // ══════════════════════════════════════
@@ -2303,6 +3024,23 @@ async function saveMenuToFB(m) {
   await db.ref('menu').set(obj);
 }
 </script>
+<!-- AÑADIR A PEDIDO MODAL -->
+<div class="add-to-order-overlay" id="ato-overlay">
+  <div class="add-to-order-modal">
+    <div class="ato-header">
+      <div class="ato-handle"></div>
+      <div class="ato-title">➕ Añadir al pedido</div>
+      <div class="ato-subtitle" id="ato-subtitle">Selecciona los productos a añadir</div>
+    </div>
+    <div class="ato-cats" id="ato-cats"></div>
+    <div class="ato-products" id="ato-products"></div>
+    <div class="ato-footer">
+      <button class="ato-btn-cancel" onclick="closeATO()">Cancelar</button>
+      <button class="ato-btn-add" id="ato-btn-add" onclick="confirmATO()" disabled>➕ Añadir productos</button>
+    </div>
+  </div>
+</div>
+
 <!-- CONFIRM DIALOG -->
 <div class="confirm-overlay" id="confirm-overlay">
   <div class="confirm-box">
