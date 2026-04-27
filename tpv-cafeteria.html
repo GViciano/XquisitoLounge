@@ -199,10 +199,10 @@ h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400}
 .ocb-item-row:last-child{border-bottom:none}
 .ocb-item-name{font-weight:500}
 .ocb-item-qty{color:var(--text2);font-size:.8rem;flex-shrink:0;margin-left:8px}
-.ocb-footer{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border)}
-.ocb-total{font-family:'DM Serif Display',serif;font-size:1.2rem}
-.ocb-actions{display:flex;gap:7px}
-.btn-ocb{padding:6px 12px;border-radius:var(--rsm);border:none;font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .15s}
+.ocb-footer{display:flex;align-items:flex-end;justify-content:space-between;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border);gap:8px;flex-wrap:wrap}
+.ocb-total{font-family:'DM Serif Display',serif;font-size:1.2rem;flex-shrink:0}
+.ocb-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;flex:1}
+.btn-ocb{padding:5px 9px;border-radius:var(--rsm);border:none;font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;transition:all .15s;white-space:nowrap}
 .btn-ocb.ready{background:var(--ok-bg);color:var(--ok)}
 .btn-ocb.paid{background:var(--accent);color:#fff}
 .btn-ocb:active{transform:scale(.95)}
@@ -232,10 +232,10 @@ h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400}
 .s-ready{background:var(--ok-bg);color:var(--ok)}
 .s-paid{background:var(--surface2);color:var(--text2)}
 .oc-items{font-size:.78rem;color:var(--text2);line-height:1.55;margin-bottom:8px;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
-.oc-foot{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.oc-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .oc-total{font-weight:600;font-size:.92rem}
-.oc-actions{display:flex;gap:5px}
-.btn-sm{padding:5px 12px;border-radius:var(--rsm);border:1px solid var(--border2);background:var(--surface2);font-family:'DM Sans',sans-serif;font-size:.74rem;font-weight:500;cursor:pointer;color:var(--text);transition:all .12s}
+.oc-actions{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.btn-sm{padding:5px 8px;border-radius:var(--rsm);border:1px solid var(--border2);background:var(--surface2);font-family:'DM Sans',sans-serif;font-size:.7rem;font-weight:500;cursor:pointer;color:var(--text);transition:all .12s;white-space:nowrap}
 .btn-sm.ok{background:var(--accent);color:#fff;border-color:var(--accent)}
 .btn-sm:active{transform:scale(.94)}
 .empty{text-align:center;padding:3rem 1rem;color:var(--text3)}
@@ -377,12 +377,12 @@ h1,h2,h3{font-family:'DM Serif Display',serif;font-weight:400}
 .disc-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:50px;font-size:.7rem;font-weight:600}
 .disc-badge.descuento{background:var(--ok-bg);color:var(--ok)}
 .disc-badge.invitado{background:var(--accent-l);color:var(--accent-d)}
-.ocb-total-wrap{display:flex;flex-direction:column;gap:2px}
+.ocb-total-wrap{display:flex;flex-direction:column;gap:2px;flex-shrink:0}
 .ocb-total-original{font-size:.78rem;color:var(--text3);text-decoration:line-through}
 .ocb-total-cobrado{font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--ok)}
 
 /* ── MESA MODAL ── */
-.mesa-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:600;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.mesa-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:850;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
 .mesa-modal-overlay.open{opacity:1;pointer-events:all}
 @media(min-width:900px){.mesa-modal-overlay{align-items:center}}
 .mesa-modal{background:var(--surface);border-radius:var(--rlg) var(--rlg) 0 0;padding:1.75rem 1.25rem 2.5rem;width:100%;max-width:480px;transform:translateY(60px);transition:transform .3s cubic-bezier(.32,.72,0,1);position:relative}
@@ -1402,20 +1402,37 @@ let pendingMesa = '';
 
 function openMesaModal() {
   if (!cart.length) return;
-  // Build mesa grid
+  const overlay = document.getElementById('modal-mesa-select');
+  if (!overlay) { console.error('mesa modal not found'); return; }
   const grid = document.getElementById('mesa-grid');
+  if (!grid) return;
   grid.innerHTML = `
     <button class="mesa-btn barra" onclick="selectMesa('Barra')" style="grid-column:span 2;aspect-ratio:auto;padding:14px;font-size:1rem">
       🍺 Barra
     </button>
     ${Array.from({length:NUM_MESAS},(_,i)=>`
-      <button class="mesa-btn" onclick="selectMesa('${i+1}')">
+      <button class="mesa-btn" id="mesa-btn-${i+1}" onclick="selectMesa('${i+1}')">
         ${i+1}
         <span class="mesa-btn-label">Mesa</span>
       </button>`).join('')}
   `;
   document.getElementById('mesa-modal-comment').value = '';
   document.getElementById('modal-mesa-select').classList.add('open');
+  // If coming from plano, auto-confirm the pre-selected mesa
+  if (pendingMesaFromPlano) {
+    const pre = pendingMesaFromPlano;
+    pendingMesaFromPlano = null;
+    setTimeout(() => {
+      // Highlight it briefly then auto-select
+      const btn = document.getElementById('mesa-btn-'+pre) ||
+                  document.querySelector(`.mesa-btn.barra`);
+      if (btn) {
+        btn.style.border = '2px solid var(--accent)';
+        btn.style.background = 'var(--accent-l)';
+      }
+      // Don't auto-confirm — let user add comment if needed
+    }, 80);
+  }
 }
 
 function closeMesaModal() {
@@ -1428,19 +1445,7 @@ function selectMesa(mesa) {
   confirmOrder(String(mesa), comment);
 }
 
-// Override openMesaModal to pre-select mesa if coming from plano
-const _origOpenMesaModal = openMesaModal;
-function openMesaModal() {
-  _origOpenMesaModal();
-  if (pendingMesaFromPlano) {
-    // Highlight the pre-selected mesa button
-    setTimeout(() => {
-      const btn = document.querySelector(`.mesa-btn[onclick*="selectMesa('${pendingMesaFromPlano}')"]`);
-      if (btn) { btn.style.border='2px solid var(--accent)'; btn.style.background='var(--accent-l)'; }
-    }, 50);
-    pendingMesaFromPlano = null;
-  }
-}
+// openMesaModal pre-selection handled inside the function itself
 
 // Close mesa modal on overlay click
 document.getElementById('modal-mesa-select').addEventListener('click', e => {
@@ -1996,33 +2001,6 @@ function renderPlano() {
 
   function mesaStatus(m) { return mesaMap[m] ? mesaMap[m].status : 'libre'; }
 
-  function onClickMesa(mesa) {
-    // If mesa has active orders → go to orders view filtered
-    if (mesaMap[mesa]) {
-      if (isDesk()) deskSwitch('orders'); else mobSwitch('orders');
-      // Scroll to first card of this mesa after short delay
-      setTimeout(() => {
-        const cards = document.querySelectorAll('.order-card-big,.order-card');
-        for (const c of cards) {
-          if (c.textContent.includes('Mesa '+mesa) || c.textContent.includes(mesa)) {
-            c.scrollIntoView({behavior:'smooth', block:'center'});
-            c.style.outline = '3px solid var(--accent)';
-            setTimeout(() => c.style.outline = '', 2000);
-            break;
-          }
-        }
-      }, 300);
-    } else {
-      // Free mesa → start new order for this mesa
-      cart = [];
-      renderCart();
-      if (isDesk()) deskSwitch('menu'); else mobSwitch('menu');
-      // Pre-select this mesa in the confirm flow
-      pendingMesaFromPlano = String(mesa);
-      showToast('📍 Mesa ' + mesa + ' seleccionada — añade productos y confirma');
-    }
-  }
-
   // Barra section
   const barraState = mesaMap['Barra'];
   const barraOrders = barraState ? barraState.orders : [];
@@ -2090,6 +2068,56 @@ function renderPlano() {
 
 // Pre-selected mesa from plano click
 let pendingMesaFromPlano = null;
+
+// Global — called from renderPlano HTML onclick
+function onClickMesa(mesa) {
+  // Build current mesaMap from active orders
+  const activeMesaMap = {};
+  orders.filter(o => o.status !== 'paid').forEach(o => {
+    const m = o.mesa || getMesa(o.note) || '';
+    if (!m) return;
+    if (!activeMesaMap[m]) activeMesaMap[m] = [];
+    activeMesaMap[m].push(o);
+  });
+
+  if (activeMesaMap[mesa]) {
+    // Mesa has active orders → switch to orders view and highlight
+    if (isDesk()) deskSwitch('orders'); else mobSwitch('orders');
+    setTimeout(() => {
+      // Find card that matches this mesa
+      const allCards = document.querySelectorAll('[id^="oc-"],.order-card');
+      const mesaStr  = 'Mesa ' + mesa;
+      let found = false;
+      // Also search the rendered HTML text
+      const grid = document.getElementById('orders-grid-center') ||
+                   document.getElementById('mob-orders-list');
+      if (grid) {
+        const cards = grid.querySelectorAll('.order-card-big,.order-card');
+        for (const c of cards) {
+          if (c.innerHTML.includes(mesaStr) ||
+              c.innerHTML.includes('>'+mesa+'<') ||
+              c.innerHTML.includes("'"+mesa+"'")) {
+            c.scrollIntoView({behavior:'smooth', block:'center'});
+            const prevOutline = c.style.outline;
+            c.style.outline = '3px solid var(--accent)';
+            c.style.transition = 'outline 0.3s';
+            setTimeout(() => { c.style.outline = prevOutline; }, 2500);
+            found = true;
+            break;
+          }
+        }
+      }
+      if (!found) showToast('Mesa ' + mesa + ' — pedidos activos');
+    }, 350);
+  } else {
+    // Free mesa → go to menu and pre-select this mesa
+    cart = [];
+    renderCart();
+    if (isDesk()) deskSwitch('menu'); else mobSwitch('menu');
+    pendingMesaFromPlano = String(mesa);
+    showToast('📍 Mesa ' + mesa + ' seleccionada — elige productos y confirma');
+  }
+}
 
 function initHist(){
   calYear=new Date().getFullYear();calMonth=new Date().getMonth();selDate=todayStr();
